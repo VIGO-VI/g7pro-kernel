@@ -25,6 +25,7 @@ Pinned to commit `33da321bbc521b4b085712a38e54d06121bb1b00`.
 | Battery `g7pro-1-16-battery`: 100 / Full | pass |
 | FF_RUMBLE via existing xpad path | pass — `rumble_test: OK`, proper grip rumble |
 | Restore stock xpad after test | pass |
+| xpad hotplug (USB unbind/rebind) | pass — both devices and battery recreated; SDL3 gyro=1 accel=1 |
 
 Log: `/tmp/xpad-g7pro-test.log`.
 
