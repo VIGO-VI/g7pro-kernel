@@ -87,8 +87,9 @@ effect bookkeeping for free, so the driver body is small.
   with its two-channel `FF_RUMBLE`?
 - Does the report survive suspend/resume and reconnects, or must it be resent
   after every link setup?
-- Battery over Bluetooth: the descriptor has no battery page and BlueZ
-  exposes no `Battery1`.  A vendor query may exist, but nothing was found.
+- Battery over Bluetooth: the descriptor has no battery page, BlueZ exposes
+  no `Battery1`, and probing HID feature report IDs `0x01`–`0x20` produced no
+  response at all.  Treated as absent, not merely undocumented.
 
 ## Test evidence
 
