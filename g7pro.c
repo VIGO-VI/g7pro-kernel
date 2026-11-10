@@ -1,0 +1,652 @@
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+ * GameSir G7 Pro wired USB input driver
+ *
+ * The controller exposes a vendor-specific interface 0 with interrupt OUT
+ * endpoint 0x02 and interrupt IN endpoint 0x82.  A heartbeat
+ * (0f 00 seq 02 f2 00) every ~300 ms keeps the vendor session alive; the
+ * controller then streams 64-byte report 0x10 frames containing the physical
+ * sticks, buttons, triggers, battery and the raw 6-axis IMU.
+ *
+ * Two input devices are registered:
+ *
+ *   GameSir G7 Pro               gamepad
+ *   GameSir G7 Pro Motion Sensors
+ *                                ABS_X/Y/Z  accelerometer
+ *                                ABS_RX/RY/RZ gyroscope
+ *
+ * The sensor device follows the hid-playstation convention:
+ * INPUT_PROP_ACCELEROMETER, EV_MSC/MSC_TIMESTAMP, axis resolution 8192/g and
+ * 16/(deg/s), and the same uniq as the gamepad.  SDL3's Linux backend pairs
+ * the two by uniq and exposes SDL_SENSOR_GYRO / SDL_SENSOR_ACCEL.
+ *
+ * Protocol references:
+ *   - g7ctl PROTOCOL.md (report 0x10 layout)
+ *   - Linux drivers/hid/hid-playstation.c (sensor input device shape)
+ *   - Linux drivers/input/joystick/xpad.c (gamepad input conventions)
+ */
+
+#include <linux/delay.h>
+#include <linux/input.h>
+#include <linux/kernel.h>
+#include <linux/ktime.h>
+#include <linux/module.h>
+#include <linux/power_supply.h>
+#include <linux/slab.h>
+#include <linux/string.h>
+#include <linux/usb.h>
+#include <linux/workqueue.h>
+#include <linux/unaligned.h>
+
+#include "g7pro_proto.h"
+
+#define G7PRO_VID		0x3537
+#define G7PRO_PID_WIRED		0x109b
+#define G7PRO_PID_DONGLE	0x109c
+
+#define G7PRO_EP_IN		0x82
+#define G7PRO_EP_OUT		0x02
+#define G7PRO_HEARTBEAT_MS	300
+
+/* Raw G7 Pro IMU scales, matching the DS4/hid-playstation units. */
+#define G7PRO_ACCEL_RES		8192
+#define G7PRO_GYRO_RES		16
+
+static void g7pro_disconnect(struct usb_interface *intf);
+
+struct g7pro {
+	struct usb_device *udev;
+	struct usb_interface *intf;
+
+	struct input_dev *input;
+	struct input_dev *motion;
+	struct power_supply *battery;
+	int battery_percent;
+	bool charging;
+
+	struct urb *in_urb;
+	u8 *in_buf;
+	dma_addr_t in_dma;
+	u8 *hb_buf;
+	u8 *ff_buf;
+	struct work_struct ff_work;
+	spinlock_t ff_lock;
+	u8 ff_strong, ff_weak, ff_duration;
+	struct usb_anchor in_anchor;
+
+	struct delayed_work hb_work;
+	atomic_t disconnected;
+	u8 seq;
+
+	char *uniq;
+	char *phys;
+};
+
+static int g7pro_send_heartbeat(struct g7pro *g7)
+{
+	int actual = 0;
+	int ret;
+
+	memset(g7->hb_buf, 0, G7PRO_REPORT_LEN);
+	g7->hb_buf[0] = 0x0f;
+	g7->hb_buf[2] = ++g7->seq;
+	g7->hb_buf[3] = 0x02;
+	g7->hb_buf[4] = 0xf2;
+
+	ret = usb_interrupt_msg(g7->udev,
+				usb_sndintpipe(g7->udev, G7PRO_EP_OUT),
+				g7->hb_buf, G7PRO_REPORT_LEN, &actual, 1000);
+	if (ret)
+		return ret;
+	if (actual != G7PRO_REPORT_LEN)
+		return -EIO;
+
+	return 0;
+}
+
+static void g7pro_hb_work(struct work_struct *work)
+{
+	struct g7pro *g7 = container_of(to_delayed_work(work),
+					struct g7pro, hb_work);
+	int ret;
+
+	if (atomic_read(&g7->disconnected))
+		return;
+
+	ret = g7pro_send_heartbeat(g7);
+	if (ret && ret != -EPIPE && ret != -ESHUTDOWN)
+		dev_warn_ratelimited(&g7->intf->dev,
+				     "heartbeat failed: %d\n", ret);
+
+	if (!atomic_read(&g7->disconnected))
+		schedule_delayed_work(&g7->hb_work,
+				      msecs_to_jiffies(G7PRO_HEARTBEAT_MS));
+}
+
+static void g7pro_parse(struct g7pro *g7, const u8 *d, int len)
+{
+	struct g7pro_state s;
+	struct input_dev *input = g7->input;
+	struct input_dev *motion = g7->motion;
+	u32 ts;
+
+	if (!g7pro_decode_report(d, len, &s))
+		return;
+
+	if (s.battery != g7->battery_percent || s.charging != g7->charging) {
+		g7->battery_percent = s.battery;
+		g7->charging = s.charging;
+		if (g7->battery)
+			power_supply_changed(g7->battery);
+	}
+
+	/* Processed sticks: 0..255, 0x80 centre.  Scale to the kernel's
+	 * signed 16-bit gamepad convention, as xpad does.
+	 */
+	input_report_abs(input, ABS_X, (int)s.lx * 257 - 32768);
+	input_report_abs(input, ABS_Y, (int)s.ly * 257 - 32768);
+	input_report_abs(input, ABS_RX, (int)s.rx * 257 - 32768);
+	input_report_abs(input, ABS_RY, (int)s.ry * 257 - 32768);
+
+	input_report_abs(input, ABS_Z, (s.lt * 1023 + 127) / 255);
+	input_report_abs(input, ABS_RZ, (s.rt * 1023 + 127) / 255);
+	input_report_abs(input, ABS_HAT0X, s.hat_x);
+	input_report_abs(input, ABS_HAT0Y, s.hat_y);
+
+	input_report_key(input, BTN_X, s.x);
+	input_report_key(input, BTN_A, s.a);
+	input_report_key(input, BTN_B, s.b);
+	input_report_key(input, BTN_Y, s.y);
+
+	input_report_key(input, BTN_TL, s.lb);
+	input_report_key(input, BTN_TR, s.rb);
+	input_report_key(input, BTN_TL2, s.lt_digital);
+	input_report_key(input, BTN_TR2, s.rt_digital);
+	input_report_key(input, BTN_SELECT, s.view);
+	input_report_key(input, BTN_START, s.menu);
+	input_report_key(input, BTN_THUMBL, s.l3);
+	input_report_key(input, BTN_THUMBR, s.r3);
+
+	input_report_key(input, BTN_MODE, s.guide);
+	input_report_key(input, BTN_TRIGGER_HAPPY5, s.share);
+	input_report_key(input, BTN_TRIGGER_HAPPY1, s.l4);
+	input_report_key(input, BTN_TRIGGER_HAPPY2, s.r4);
+
+	input_report_key(input, BTN_TRIGGER_HAPPY3, s.l5);
+	input_report_key(input, BTN_TRIGGER_HAPPY4, s.r5);
+	input_sync(input);
+
+	input_report_abs(motion, ABS_RX, s.gyro_x);
+	input_report_abs(motion, ABS_RY, s.gyro_y);
+	input_report_abs(motion, ABS_RZ, s.gyro_z);
+	input_report_abs(motion, ABS_X, s.accel_x);
+	input_report_abs(motion, ABS_Y, s.accel_y);
+	input_report_abs(motion, ABS_Z, s.accel_z);
+
+	ts = (u32)(ktime_get_ns() / 1000);
+	input_event(motion, EV_MSC, MSC_TIMESTAMP, ts);
+	input_sync(motion);
+}
+
+static void g7pro_in_complete(struct urb *urb)
+{
+	struct g7pro *g7 = urb->context;
+	int ret;
+
+	if (urb->status) {
+		if (urb->status == -ESHUTDOWN || urb->status == -ENOENT)
+			return;
+		dev_dbg_ratelimited(&g7->intf->dev,
+				    "input urb status %d\n", urb->status);
+	}
+
+	if (!urb->status && urb->actual_length >= 61)
+		g7pro_parse(g7, g7->in_buf, urb->actual_length);
+
+	if (atomic_read(&g7->disconnected))
+		return;
+
+	ret = usb_submit_urb(urb, GFP_ATOMIC);
+	if (ret && ret != -EPIPE && ret != -ESHUTDOWN)
+		dev_err_ratelimited(&g7->intf->dev,
+				    "failed to resubmit input urb: %d\n", ret);
+}
+
+static int g7pro_battery_get_property(struct power_supply *psy,
+				      enum power_supply_property psp,
+				      union power_supply_propval *val)
+{
+	struct g7pro *g7 = power_supply_get_drvdata(psy);
+
+	switch (psp) {
+	case POWER_SUPPLY_PROP_PRESENT:
+		val->intval = 1;
+		break;
+	case POWER_SUPPLY_PROP_CAPACITY:
+		val->intval = g7->battery_percent < 0 ? 0 : g7->battery_percent;
+		break;
+	case POWER_SUPPLY_PROP_STATUS:
+		if (g7->battery_percent < 0)
+			val->intval = POWER_SUPPLY_STATUS_UNKNOWN;
+		else if (g7->charging)
+			val->intval = POWER_SUPPLY_STATUS_CHARGING;
+		else if (g7->battery_percent >= 100)
+			val->intval = POWER_SUPPLY_STATUS_FULL;
+		else
+			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
+		break;
+	case POWER_SUPPLY_PROP_SCOPE:
+		val->intval = POWER_SUPPLY_SCOPE_DEVICE;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+static const enum power_supply_property g7pro_battery_props[] = {
+	POWER_SUPPLY_PROP_PRESENT,
+	POWER_SUPPLY_PROP_CAPACITY,
+	POWER_SUPPLY_PROP_STATUS,
+	POWER_SUPPLY_PROP_SCOPE,
+};
+
+static const struct power_supply_desc g7pro_battery_desc = {
+	.name = "g7pro-battery",
+	.type = POWER_SUPPLY_TYPE_BATTERY,
+	.properties = g7pro_battery_props,
+	.num_properties = ARRAY_SIZE(g7pro_battery_props),
+	.get_property = g7pro_battery_get_property,
+};
+
+static int g7pro_battery_register(struct g7pro *g7)
+{
+	struct power_supply_config cfg = { .drv_data = g7 };
+	struct power_supply_desc *desc;
+
+	desc = devm_kzalloc(&g7->intf->dev, sizeof(*desc), GFP_KERNEL);
+	if (!desc)
+		return -ENOMEM;
+
+	*desc = g7pro_battery_desc;
+	desc->name = devm_kasprintf(&g7->intf->dev, GFP_KERNEL,
+				    "g7pro-%d-%d-battery",
+				    g7->udev->bus->busnum,
+				    g7->udev->devnum);
+	if (!desc->name)
+		return -ENOMEM;
+
+	g7->battery = devm_power_supply_register(&g7->intf->dev, desc, &cfg);
+	if (IS_ERR(g7->battery))
+		return PTR_ERR(g7->battery);
+
+	return 0;
+}
+
+static void g7pro_ff_work(struct work_struct *work)
+{
+	struct g7pro *g7 = container_of(work, struct g7pro, ff_work);
+	unsigned long flags;
+	u8 strong, weak, duration;
+	int actual = 0;
+	int ret;
+
+	if (atomic_read(&g7->disconnected))
+		return;
+
+	spin_lock_irqsave(&g7->ff_lock, flags);
+	strong = g7->ff_strong;
+	weak = g7->ff_weak;
+	duration = g7->ff_duration;
+	spin_unlock_irqrestore(&g7->ff_lock, flags);
+
+	memset(g7->ff_buf, 0, 16);
+	g7->ff_buf[0] = 0x09;
+	g7->ff_buf[2] = ++g7->seq;
+	g7->ff_buf[3] = 0x09;
+	g7->ff_buf[4] = 0x00;
+	g7->ff_buf[5] = 0x0f;
+	g7->ff_buf[6] = 0;	/* left trigger */
+	g7->ff_buf[7] = 0;	/* right trigger */
+	g7->ff_buf[8] = strong;
+	g7->ff_buf[9] = weak;
+	g7->ff_buf[10] = duration;
+
+	ret = usb_interrupt_msg(g7->udev,
+				usb_sndintpipe(g7->udev, G7PRO_EP_OUT),
+				g7->ff_buf, 13, &actual, 1000);
+	if (ret)
+		dev_err_ratelimited(&g7->intf->dev, "rumble failed: %d\n", ret);
+}
+
+static int g7pro_play_effect(struct input_dev *dev, void *data,
+			     struct ff_effect *effect)
+{
+	struct g7pro *g7 = input_get_drvdata(dev);
+	unsigned long flags;
+	u8 strong, weak, duration;
+
+	if (effect->type != FF_RUMBLE)
+		return 0;
+
+	strong = ((effect->u.rumble.strong_magnitude >> 8) * 100 + 127) / 255;
+	weak = ((effect->u.rumble.weak_magnitude >> 8) * 100 + 127) / 255;
+
+	if (!strong && !weak) {
+		duration = 0;
+	} else if (effect->replay.length == 0xffff) {
+		duration = 255;
+	} else {
+		duration = min_t(u32, max_t(u32, effect->replay.length / 10, 1),
+				 255);
+	}
+
+	spin_lock_irqsave(&g7->ff_lock, flags);
+	g7->ff_strong = strong;
+	g7->ff_weak = weak;
+	g7->ff_duration = duration;
+	spin_unlock_irqrestore(&g7->ff_lock, flags);
+
+	schedule_work(&g7->ff_work);
+	return 0;
+}
+
+static int g7pro_input_create(struct g7pro *g7)
+{
+	struct input_dev *input;
+	int ret;
+
+	input = input_allocate_device();
+	if (!input)
+		return -ENOMEM;
+
+	input->name = "GameSir G7 Pro";
+	input->phys = g7->phys;
+	input->uniq = g7->uniq;
+	input->id.bustype = BUS_USB;
+	input->id.vendor = le16_to_cpu(g7->udev->descriptor.idVendor);
+	input->id.product = le16_to_cpu(g7->udev->descriptor.idProduct);
+	input->id.version = le16_to_cpu(g7->udev->descriptor.bcdDevice);
+	input->dev.parent = &g7->intf->dev;
+	input_set_drvdata(input, g7);
+
+	input_set_abs_params(input, ABS_X, -32768, 32767, 16, 128);
+	input_set_abs_params(input, ABS_Y, -32768, 32767, 16, 128);
+	input_set_abs_params(input, ABS_RX, -32768, 32767, 16, 128);
+	input_set_abs_params(input, ABS_RY, -32768, 32767, 16, 128);
+	input_set_abs_params(input, ABS_Z, 0, 1023, 0, 0);
+	input_set_abs_params(input, ABS_RZ, 0, 1023, 0, 0);
+	input_set_abs_params(input, ABS_HAT0X, -1, 1, 0, 0);
+	input_set_abs_params(input, ABS_HAT0Y, -1, 1, 0, 0);
+
+	input_set_capability(input, EV_KEY, BTN_A);
+	input_set_capability(input, EV_KEY, BTN_B);
+	input_set_capability(input, EV_KEY, BTN_X);
+	input_set_capability(input, EV_KEY, BTN_Y);
+	input_set_capability(input, EV_KEY, BTN_TL);
+	input_set_capability(input, EV_KEY, BTN_TR);
+	input_set_capability(input, EV_KEY, BTN_TL2);
+	input_set_capability(input, EV_KEY, BTN_TR2);
+	input_set_capability(input, EV_KEY, BTN_SELECT);
+	input_set_capability(input, EV_KEY, BTN_START);
+	input_set_capability(input, EV_KEY, BTN_MODE);
+	input_set_capability(input, EV_KEY, BTN_THUMBL);
+	input_set_capability(input, EV_KEY, BTN_THUMBR);
+	input_set_capability(input, EV_KEY, BTN_TRIGGER_HAPPY1);
+	input_set_capability(input, EV_KEY, BTN_TRIGGER_HAPPY2);
+	input_set_capability(input, EV_KEY, BTN_TRIGGER_HAPPY3);
+	input_set_capability(input, EV_KEY, BTN_TRIGGER_HAPPY4);
+	input_set_capability(input, EV_KEY, BTN_TRIGGER_HAPPY5);
+	input_set_capability(input, EV_FF, FF_RUMBLE);
+
+	ret = input_ff_create_memless(input, NULL, g7pro_play_effect);
+	if (ret) {
+		input_free_device(input);
+		return ret;
+	}
+
+	ret = input_register_device(input);
+	if (ret) {
+		input_free_device(input);
+		return ret;
+	}
+
+	g7->input = input;
+	return 0;
+}
+
+static int g7pro_motion_create(struct g7pro *g7)
+{
+	struct input_dev *motion;
+	int ret;
+
+	motion = input_allocate_device();
+	if (!motion)
+		return -ENOMEM;
+
+	motion->name = "GameSir G7 Pro Motion Sensors";
+	motion->phys = g7->phys;
+	motion->uniq = g7->uniq;
+	motion->id.bustype = BUS_USB;
+	motion->id.vendor = le16_to_cpu(g7->udev->descriptor.idVendor);
+	motion->id.product = le16_to_cpu(g7->udev->descriptor.idProduct);
+	motion->id.version = le16_to_cpu(g7->udev->descriptor.bcdDevice);
+	motion->dev.parent = &g7->intf->dev;
+
+	__set_bit(INPUT_PROP_ACCELEROMETER, motion->propbit);
+	__set_bit(EV_MSC, motion->evbit);
+	__set_bit(MSC_TIMESTAMP, motion->mscbit);
+
+	input_set_abs_params(motion, ABS_X, -32768, 32767, 16, 0);
+	input_set_abs_params(motion, ABS_Y, -32768, 32767, 16, 0);
+	input_set_abs_params(motion, ABS_Z, -32768, 32767, 16, 0);
+	input_abs_set_res(motion, ABS_X, G7PRO_ACCEL_RES);
+	input_abs_set_res(motion, ABS_Y, G7PRO_ACCEL_RES);
+	input_abs_set_res(motion, ABS_Z, G7PRO_ACCEL_RES);
+
+	input_set_abs_params(motion, ABS_RX, -32768, 32767, 16, 0);
+	input_set_abs_params(motion, ABS_RY, -32768, 32767, 16, 0);
+	input_set_abs_params(motion, ABS_RZ, -32768, 32767, 16, 0);
+	input_abs_set_res(motion, ABS_RX, G7PRO_GYRO_RES);
+	input_abs_set_res(motion, ABS_RY, G7PRO_GYRO_RES);
+	input_abs_set_res(motion, ABS_RZ, G7PRO_GYRO_RES);
+
+	ret = input_register_device(motion);
+	if (ret) {
+		input_free_device(motion);
+		return ret;
+	}
+
+	g7->motion = motion;
+	return 0;
+}
+
+static int g7pro_probe(struct usb_interface *intf,
+		       const struct usb_device_id *id)
+{
+	struct usb_device *udev = interface_to_usbdev(intf);
+	struct usb_host_interface *alt = intf->cur_altsetting;
+	struct usb_endpoint_descriptor *ep_in = NULL;
+	struct g7pro *g7;
+	char path[64];
+	char serial[128];
+	int ret;
+	int i;
+
+	if (alt->desc.bInterfaceNumber != 0)
+		return -ENODEV;
+
+	for (i = 0; i < alt->desc.bNumEndpoints; i++) {
+		if (usb_endpoint_is_int_in(&alt->endpoint[i].desc)) {
+			ep_in = &alt->endpoint[i].desc;
+			break;
+		}
+	}
+	if (!ep_in)
+		return -ENODEV;
+
+	g7 = devm_kzalloc(&intf->dev, sizeof(*g7), GFP_KERNEL);
+	if (!g7)
+		return -ENOMEM;
+
+	g7->udev = usb_get_dev(udev);
+	g7->battery_percent = -1;
+	g7->intf = intf;
+	atomic_set(&g7->disconnected, 0);
+	init_usb_anchor(&g7->in_anchor);
+	spin_lock_init(&g7->ff_lock);
+	INIT_WORK(&g7->ff_work, g7pro_ff_work);
+	INIT_DELAYED_WORK(&g7->hb_work, g7pro_hb_work);
+	usb_set_intfdata(intf, g7);
+
+	ret = usb_string(udev, udev->descriptor.iSerialNumber, serial,
+			 sizeof(serial));
+	if (ret > 0)
+		g7->uniq = devm_kstrdup(&intf->dev, serial, GFP_KERNEL);
+	else
+		g7->uniq = devm_kasprintf(&intf->dev, GFP_KERNEL, "g7pro-%d-%d",
+				     udev->bus->busnum,
+				     udev->devnum);
+	if (!g7->uniq) {
+		ret = -ENOMEM;
+		goto err;
+	}
+
+	usb_make_path(udev, path, sizeof(path));
+	g7->phys = devm_kasprintf(&intf->dev, GFP_KERNEL, "%s/input0", path);
+	if (!g7->phys) {
+		ret = -ENOMEM;
+		goto err;
+	}
+
+	g7->ff_buf = kmalloc(16, GFP_KERNEL);
+	if (!g7->ff_buf) {
+		ret = -ENOMEM;
+		goto err;
+	}
+
+	ret = g7pro_input_create(g7);
+	if (ret)
+		goto err;
+
+	ret = g7pro_motion_create(g7);
+	if (ret)
+		goto err;
+
+	ret = g7pro_battery_register(g7);
+	if (ret)
+		goto err;
+
+	g7->hb_buf = kmalloc(G7PRO_REPORT_LEN, GFP_KERNEL);
+	if (!g7->hb_buf) {
+		ret = -ENOMEM;
+		goto err;
+	}
+
+	/* A freshly claimed device accepts heartbeats immediately but needs a
+	 * short warm-up before it streams report 0x10.
+	 */
+	for (i = 0; i < 4; i++) {
+		ret = g7pro_send_heartbeat(g7);
+		if (ret) {
+			dev_err(&intf->dev, "heartbeat %d failed: %d\n", i, ret);
+			goto err;
+		}
+		msleep(250);
+	}
+
+	g7->in_buf = usb_alloc_coherent(udev, G7PRO_REPORT_LEN,
+					GFP_KERNEL, &g7->in_dma);
+	if (!g7->in_buf) {
+		ret = -ENOMEM;
+		goto err;
+	}
+
+	g7->in_urb = usb_alloc_urb(0, GFP_KERNEL);
+	if (!g7->in_urb) {
+		ret = -ENOMEM;
+		goto err;
+	}
+
+	usb_fill_int_urb(g7->in_urb, udev,
+			 usb_rcvintpipe(udev, G7PRO_EP_IN),
+			 g7->in_buf, G7PRO_REPORT_LEN,
+			 g7pro_in_complete, g7, ep_in->bInterval);
+	/* usb_alloc_coherent() may return vmalloc-backed memory.  Tell the
+	 * HCD to use the DMA address instead of mapping the pointer.
+	 */
+	g7->in_urb->transfer_dma = g7->in_dma;
+	g7->in_urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
+	usb_anchor_urb(g7->in_urb, &g7->in_anchor);
+
+	ret = usb_submit_urb(g7->in_urb, GFP_KERNEL);
+	if (ret) {
+		dev_err(&intf->dev, "input urb submit failed: %d\n", ret);
+		usb_unanchor_urb(g7->in_urb);
+		goto err;
+	}
+
+	schedule_delayed_work(&g7->hb_work,
+			      msecs_to_jiffies(G7PRO_HEARTBEAT_MS));
+
+	dev_info(&intf->dev, "GameSir G7 Pro ready (%04x:%04x)\n",
+		 le16_to_cpu(udev->descriptor.idVendor),
+		 le16_to_cpu(udev->descriptor.idProduct));
+	return 0;
+
+err:
+	g7pro_disconnect(intf);
+	return ret;
+}
+
+static void g7pro_disconnect(struct usb_interface *intf)
+{
+	struct g7pro *g7 = usb_get_intfdata(intf);
+
+	if (!g7)
+		return;
+
+	usb_set_intfdata(intf, NULL);
+	atomic_set(&g7->disconnected, 1);
+
+	cancel_delayed_work_sync(&g7->hb_work);
+	cancel_work_sync(&g7->ff_work);
+	usb_kill_anchored_urbs(&g7->in_anchor);
+
+	if (g7->in_urb) {
+		usb_unanchor_urb(g7->in_urb);
+		usb_free_urb(g7->in_urb);
+	}
+	if (g7->in_buf)
+		usb_free_coherent(g7->udev, G7PRO_REPORT_LEN, g7->in_buf,
+				  g7->in_dma);
+	kfree(g7->hb_buf);
+	kfree(g7->ff_buf);
+
+	if (g7->input)
+		input_unregister_device(g7->input);
+	if (g7->motion)
+		input_unregister_device(g7->motion);
+
+	usb_put_dev(g7->udev);
+}
+
+static const struct usb_device_id g7pro_id_table[] = {
+	{ USB_DEVICE(G7PRO_VID, G7PRO_PID_WIRED) },
+	{ USB_DEVICE(G7PRO_VID, G7PRO_PID_DONGLE) },
+	{ }
+};
+MODULE_DEVICE_TABLE(usb, g7pro_id_table);
+
+static struct usb_driver g7pro_driver = {
+	.name = "g7pro",
+	.id_table = g7pro_id_table,
+	.probe = g7pro_probe,
+	.disconnect = g7pro_disconnect,
+};
+module_usb_driver(g7pro_driver);
+
+MODULE_AUTHOR("Vigo");
+MODULE_DESCRIPTION("GameSir G7 Pro gamepad and IMU driver");
+MODULE_LICENSE("GPL");
