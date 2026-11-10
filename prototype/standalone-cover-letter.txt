@@ -1,0 +1,75 @@
+From: Vigo <77800979+VIGO-VI@users.noreply.github.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] Input: add GameSir G7 Pro gamepad and IMU driver
+
+The wired GameSir G7 Pro (3537:109b) exposes its gamepad and raw 6-axis IMU
+through a vendor-specific USB interface.  Linux currently binds xpad, which
+gives a working gamepad but no motion sensors; GameSir Nexus and the
+controller's own firmware only map gyro to a stick or mouse, so SDL3, Eden
+and ScarletNX never see an SDL_SENSOR_GYRO source.
+
+This adds a USB input driver that:
+
+- claims interface 0, sends the vendor heartbeat (0f 00 seq 02 f2),
+- parses report 0x10 for sticks, triggers, D-pad, buttons, paddles,
+  battery, gyro and accelerometer,
+- registers the gamepad,
+- registers a separate "... Motion Sensors" input device following
+  hid-playstation: INPUT_PROP_ACCELEROMETER, ABS_X/Y/Z (accel) and
+  ABS_RX/RY/RZ (gyro), MSC_TIMESTAMP, resolution 8192/g and 16/(deg/s),
+  and the same uniq as the gamepad so SDL3 pairs them,
+- exposes battery capacity/status through power_supply,
+- implements FF_RUMBLE with the GIP four-motor packet, sent from a workqueue
+  because the FF callback is atomic.
+
+Tested on a wired 3537:109b (bcdDevice 0x0240), SDL3 3.4.18:
+
+- `input: GameSir G7 Pro` and `GameSir G7 Pro Motion Sensors`; same
+  Uniq=0000377903ED91EB,
+- udev: ID_INPUT_JOYSTICK on the gamepad, ID_INPUT_ACCELEROMETER on the
+  motion node,
+- SDL3: one gamepad, gyro=1 accel=1; stationary accel ~9.8-10.0 m/s^2;
+  rotating the controller produced +/-3-5 rad/s gyro,
+- power_supply `g7pro-1-4-battery`: capacity 100, status Full,
+- evdev capabilities match xpad (same axes, key codes, FF bits; only the
+  extra paddle buttons and device name differ),
+- rumble test completes and the grips vibrate.
+
+Known issues / open questions:
+
+- xpad also matches this USB ID.  The prototype unbinds xpad from interface
+  0; upstream needs either these IDs removed from xpad or an xpad extension.
+  A new driver keeps the vendor heartbeat/battery/IMU code separate; an xpad
+  extension avoids the bind-order change but puts vendor code into a generic
+  Xbox driver.  I am happy to rework it either way.
+- The protocol packet has separate LT/RT motor percentages.  Generic
+  FF_RUMBLE only carries strong/weak, so the driver drives the grip motors
+  like xpad and leaves the trigger channels at zero.  Dedicated trigger
+  control needs a userspace policy decision.
+- Bluetooth is out of scope: GameSir describes it as Android/HID and says gyro
+  mapping is PC-only; the vendor interface is USB-only.
+- KASAN/KCSAN/lockdep were not available on the test host (KFENCE is enabled).
+  sparse, W=1, checkpatch and the parser tests are clean.  A KASAN run is
+  expected before submission.
+- The driver does not write configuration (profiles, remaps, curves); those
+  remain userspace tasks.
+
+AI-assistance disclosure, per Documentation/process/coding-assistants.rst
+and generated-content.rst:
+
+- An AI coding assistant was used to write the driver, tests and
+  documentation.
+- Inputs: the g7ctl/Deadband protocol notes, live USB captures from the
+  device, the SDL3 GameSir 8K HID driver, and hid-playstation/xpad.
+- The AI generated the initial implementation and tests; the submitter ran
+  the hardware tests, reviewed the result, and takes responsibility for it.
+- The assistant did not send this series and has not added a Signed-off-by.
+  The human submitter must review, test, sign off and send it.
+- Test logs and a local line-by-line review are available; the review will be
+  shared with reviewers on request.
+
+The patch is against current mainline and adds the driver, Kconfig, Makefile
+and MAINTAINERS entries.  A diffstat follows.
+
+Vigo

@@ -68,14 +68,20 @@ a fresh frame from the controller for a new golden fixture.
 
 ## Status
 
-Working prototype on wired `3537:109b`: gamepad, Motion Sensors, battery,
-and `FF_RUMBLE`.  evdev capabilities match `xpad` (same axes, key codes and FF
-bits; only the paddles and device name differ).
+Working proof on wired `3537:109b`:
 
-Still missing before an upstream submission: hotplug/suspend field testing,
-a final `xpad` bind-order decision, dedicated trigger-motor control, and the
-kernel-config-dependent sanitizers (KASAN/KCSAN/lockdep are not enabled on the
-test host; KFENCE is).
+- standalone `g7pro` driver: gamepad, Motion Sensors, battery, `FF_RUMBLE`;
+- `xpad` extension: the same devices from the existing Xbox driver, including
+  the existing rumble path, with no separate driver and no bind-order race.
+
+The upstream direction is the `xpad` extension in `upstream/`; the standalone
+driver is kept in `prototype/` as the reference and fallback.  Both were
+tested on hardware.  evdev capabilities match xpad (same axes, key codes and
+FF bits; only the paddles and device name differ).
+
+Still missing before an upstream submission: KASAN/KCSAN/lockdep (host kernel
+lacks those configs; KFENCE is enabled), suspend/resume field testing, and
+regression testing on another xpad controller.
 
 See `HARDWARE.md` for the official capability check, `REFERENCE.md` for the
 drivers used as references, `TESTING.md` for current evidence, and

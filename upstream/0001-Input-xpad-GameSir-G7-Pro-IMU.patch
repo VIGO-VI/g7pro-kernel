@@ -1,0 +1,606 @@
+From 33a5b04e9537f8555c06b2a0c99d6b86587c1de5 Mon Sep 17 00:00:00 2001
+From: Vigo <77800979+VIGO-VI@users.noreply.github.com>
+Date: Tue, 10 Nov 2026 15:24:37 -0600
+Subject: [PATCH] Input: xpad - add GameSir G7 Pro IMU and battery support
+
+The wired GameSir G7 Pro (3537:109b/100a) exposes the gamepad through
+the normal Xbox report and a raw 6-axis IMU plus battery through vendor
+report 0x10.  The vendor session needs a heartbeat on interrupt endpoint
+0x02.
+
+Extend xpad for this device instead of adding a second driver: xpad
+already owns the interface, and a separate driver cannot bind reliably
+because USB driver matching is registration-order based.
+
+The new path is gated on VID/PID and only parses report 0x10.  It
+registers a second input device named "... Motion Sensors" following
+hid-playstation, with INPUT_PROP_ACCELEROMETER, ABS_X/Y/Z,
+ABS_RX/RY/RZ, MSC_TIMESTAMP and per-axis resolution, sharing the USB
+serial as uniq so SDL3 pairs it.  Battery is a power_supply device.
+The existing xpad gamepad and FF paths are unchanged.
+
+Tested on 3537:109b: both input devices, SDL3 gyro=1 accel=1, battery
+100/Full, FF_RUMBLE, hotplug and module reload.
+---
+ drivers/input/joystick/g7pro.h | 135 +++++++++++++
+ drivers/input/joystick/xpad.c  | 341 ++++++++++++++++++++++++++++++++-
+ 2 files changed, 469 insertions(+), 7 deletions(-)
+ create mode 100644 drivers/input/joystick/g7pro.h
+
+diff --git a/drivers/input/joystick/g7pro.h b/drivers/input/joystick/g7pro.h
+new file mode 100644
+index 0000000..676d375
+--- /dev/null
++++ b/drivers/input/joystick/g7pro.h
+@@ -0,0 +1,135 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * Pure GameSir G7 Pro report 0x10 decoder.
++ *
++ * Shared by the kernel driver and the userspace unit/fuzz tests.  It has no
++ * kernel or input-subsystem dependencies beyond fixed-width types.
++ */
++#ifndef G7PRO_PROTO_H
++#define G7PRO_PROTO_H
++
++#ifdef __KERNEL__
++#include <linux/types.h>
++#include <linux/unaligned.h>
++#define G7PRO_LE16(p) get_unaligned_le16(p)
++#else
++#include <stdbool.h>
++#include <stddef.h>
++#include <stdint.h>
++typedef uint8_t u8;
++typedef int16_t s16;
++typedef uint16_t u16;
++static inline u16 g7pro_le16(const u8 *p)
++{
++	return (u16)(p[0] | ((u16)p[1] << 8));
++}
++#define G7PRO_LE16(p) g7pro_le16(p)
++#endif
++
++#define G7PRO_REPORT_LEN	64
++#define G7PRO_REPORT_ID		0x10
++#define G7PRO_RESPONSE_MARKER	0x3c
++#define G7PRO_INPUT_MARKER	0xe0
++
++struct g7pro_state {
++	u8 lx, ly, rx, ry;
++	bool a, b, x, y;
++	bool lb, rb, lt_digital, rt_digital;
++	bool view, menu, l3, r3;
++	bool guide, share, l4, r4, l5, r5;
++	int hat_x, hat_y;
++	u8 lt, rt;
++	s16 gyro_x, gyro_y, gyro_z;
++	s16 accel_x, accel_y, accel_z;
++	int battery;
++	bool charging;
++};
++
++/**
++ * g7pro_decode_report - decode one 64-byte report 0x10 frame
++ * @d: report bytes
++ * @len: number of valid bytes
++ * @s: decoded state
++ *
++ * Returns true for a valid input frame, false for anything else.  The
++ * function never reads outside @len.
++ */
++static inline bool g7pro_decode_report(const u8 *d, size_t len,
++				       struct g7pro_state *s)
++{
++	u8 b55, b56, b57, b58;
++
++	if (!d || !s || len < 61)
++		return false;
++	if (d[0] != G7PRO_REPORT_ID || d[3] != G7PRO_RESPONSE_MARKER ||
++	    d[4] != G7PRO_INPUT_MARKER)
++		return false;
++
++	*s = (struct g7pro_state){0};
++
++	s->lx = d[5];
++	s->ly = d[6];
++	s->rx = d[7];
++	s->ry = d[8];
++
++	s->lt = d[12];
++	s->rt = d[13];
++
++	s->gyro_x = (s16)G7PRO_LE16(d + 17);
++	s->gyro_y = (s16)G7PRO_LE16(d + 19);
++	s->gyro_z = (s16)G7PRO_LE16(d + 21);
++	s->accel_x = (s16)G7PRO_LE16(d + 23);
++	s->accel_y = (s16)G7PRO_LE16(d + 25);
++	s->accel_z = (s16)G7PRO_LE16(d + 27);
++
++	s->battery = d[33] <= 100 ? d[33] : -1;
++	s->charging = !!(d[32] & 1u);
++
++	b55 = d[55];
++	b56 = d[56];
++	b57 = d[57];
++	b58 = d[58];
++
++	s->x = !!(b55 & 0x10);
++	s->a = !!(b55 & 0x20);
++	s->b = !!(b55 & 0x40);
++	s->y = !!(b55 & 0x80);
++
++	switch (b55 & 0x0f) {
++	case 0x0:
++		s->hat_y = -1;
++		break;
++	case 0x2:
++		s->hat_x = 1;
++		break;
++	case 0x4:
++		s->hat_y = 1;
++		break;
++	case 0x6:
++		s->hat_x = -1;
++		break;
++	default:
++		break;	/* 0xf = neutral */
++	}
++
++	s->lb = !!(b56 & (1u << 0));
++	s->rb = !!(b56 & (1u << 1));
++	s->lt_digital = !!(b56 & (1u << 2));
++	s->rt_digital = !!(b56 & (1u << 3));
++	s->view = !!(b56 & (1u << 4));
++	s->menu = !!(b56 & (1u << 5));
++	s->l3 = !!(b56 & (1u << 6));
++	s->r3 = !!(b56 & (1u << 7));
++
++	s->guide = !!(b57 & (1u << 0));
++	s->share = !!(b57 & (1u << 1));
++	s->l4 = !!(b57 & (1u << 3));
++	s->r4 = !!(b57 & (1u << 4));
++
++	s->l5 = !!(b58 & (1u << 0));
++	s->r5 = !!(b58 & (1u << 1));
++
++	return true;
++}
++
++#endif /* G7PRO_PROTO_H */
+diff --git a/drivers/input/joystick/xpad.c b/drivers/input/joystick/xpad.c
+index d2eb48d..63eb22a 100644
+--- a/drivers/input/joystick/xpad.c
++++ b/drivers/input/joystick/xpad.c
+@@ -34,6 +34,10 @@
+ #include <linux/slab.h>
+ #include <linux/stat.h>
+ #include <linux/module.h>
++#include <linux/power_supply.h>
++#include <linux/ktime.h>
++
++#include "g7pro.h"
+ #include <linux/usb/input.h>
+ #include <linux/usb/quirks.h>
+ 
+@@ -793,8 +797,280 @@ struct usb_xpad {
+ 	time64_t mode_btn_down_ts;
+ 	bool delay_init;		/* init packets should be delayed */
+ 	bool delayed_init_done;
++	struct g7pro_sensor *g7pro;
++};
++
++
++struct g7pro_sensor {
++	struct usb_xpad *xpad;
++	struct input_dev *motion;
++	struct power_supply *battery;
++	struct delayed_work hb_work;
++	u8 *hb_buf;
++	u8 seq;
++	int battery_percent;
++	bool charging;
++	char *uniq;
++	bool started;
++	bool motion_registered;
++};
++
++static bool g7pro_is_device(struct usb_device *udev)
++{
++	u16 vid = le16_to_cpu(udev->descriptor.idVendor);
++	u16 pid = le16_to_cpu(udev->descriptor.idProduct);
++
++	if (vid != 0x3537)
++		return false;
++	return pid == 0x109b || pid == 0x109c || pid == 0x100a;
++}
++
++static int g7pro_battery_get_property(struct power_supply *psy,
++				      enum power_supply_property psp,
++				      union power_supply_propval *val)
++{
++	struct g7pro_sensor *g7 = power_supply_get_drvdata(psy);
++
++	switch (psp) {
++	case POWER_SUPPLY_PROP_PRESENT:
++		val->intval = 1;
++		break;
++	case POWER_SUPPLY_PROP_CAPACITY:
++		val->intval = g7->battery_percent < 0 ? 0 : g7->battery_percent;
++		break;
++	case POWER_SUPPLY_PROP_STATUS:
++		if (g7->battery_percent < 0)
++			val->intval = POWER_SUPPLY_STATUS_UNKNOWN;
++		else if (g7->charging)
++			val->intval = POWER_SUPPLY_STATUS_CHARGING;
++		else if (g7->battery_percent >= 100)
++			val->intval = POWER_SUPPLY_STATUS_FULL;
++		else
++			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
++		break;
++	case POWER_SUPPLY_PROP_SCOPE:
++		val->intval = POWER_SUPPLY_SCOPE_DEVICE;
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static const enum power_supply_property g7pro_battery_props[] = {
++	POWER_SUPPLY_PROP_PRESENT,
++	POWER_SUPPLY_PROP_CAPACITY,
++	POWER_SUPPLY_PROP_STATUS,
++	POWER_SUPPLY_PROP_SCOPE,
+ };
+ 
++static const struct power_supply_desc g7pro_battery_desc = {
++	.name = "g7pro-battery",
++	.type = POWER_SUPPLY_TYPE_BATTERY,
++	.properties = g7pro_battery_props,
++	.num_properties = ARRAY_SIZE(g7pro_battery_props),
++	.get_property = g7pro_battery_get_property,
++};
++
++static int g7pro_send_heartbeat(struct usb_xpad *xpad)
++{
++	struct g7pro_sensor *g7 = xpad->g7pro;
++	int actual = 0;
++	int ret;
++
++	memset(g7->hb_buf, 0, G7PRO_REPORT_LEN);
++	g7->hb_buf[0] = 0x0f;
++	g7->hb_buf[2] = ++g7->seq;
++	g7->hb_buf[3] = 0x02;
++	g7->hb_buf[4] = 0xf2;
++
++	ret = usb_interrupt_msg(xpad->udev, usb_sndintpipe(xpad->udev, 0x02),
++				g7->hb_buf, G7PRO_REPORT_LEN, &actual, 1000);
++	if (ret)
++		return ret;
++	if (actual != G7PRO_REPORT_LEN)
++		return -EIO;
++	return 0;
++}
++
++static void g7pro_hb_work(struct work_struct *work)
++{
++	struct g7pro_sensor *g7 = container_of(to_delayed_work(work),
++					       struct g7pro_sensor, hb_work);
++	struct usb_xpad *xpad = g7->xpad;
++	int ret;
++
++	if (!g7->started)
++		return;
++	ret = g7pro_send_heartbeat(xpad);
++	if (ret && ret != -EPIPE && ret != -ESHUTDOWN)
++		dev_warn_ratelimited(&xpad->intf->dev,
++				     "g7pro heartbeat failed: %d\n", ret);
++	if (g7->started)
++		schedule_delayed_work(&g7->hb_work, msecs_to_jiffies(300));
++}
++
++static void g7pro_handle_report(struct usb_xpad *xpad, const u8 *d, int len)
++{
++	struct g7pro_sensor *g7 = xpad->g7pro;
++	struct g7pro_state s;
++	struct input_dev *motion;
++	u32 ts;
++
++	if (!g7 || !g7->started)
++		return;
++	if (!g7pro_decode_report(d, len, &s))
++		return;
++
++	if (s.battery != g7->battery_percent || s.charging != g7->charging) {
++		g7->battery_percent = s.battery;
++		g7->charging = s.charging;
++		if (g7->battery)
++			power_supply_changed(g7->battery);
++	}
++
++	motion = g7->motion;
++	if (!motion)
++		return;
++	input_report_abs(motion, ABS_RX, s.gyro_x);
++	input_report_abs(motion, ABS_RY, s.gyro_y);
++	input_report_abs(motion, ABS_RZ, s.gyro_z);
++	input_report_abs(motion, ABS_X, s.accel_x);
++	input_report_abs(motion, ABS_Y, s.accel_y);
++	input_report_abs(motion, ABS_Z, s.accel_z);
++	ts = (u32)(ktime_get_ns() / 1000);
++	input_event(motion, EV_MSC, MSC_TIMESTAMP, ts);
++	input_sync(motion);
++}
++
++static struct g7pro_sensor *g7pro_sensor_alloc(struct usb_xpad *xpad)
++{
++	struct g7pro_sensor *g7 = kzalloc_obj(*g7);
++	char serial[128];
++	int ret;
++
++	if (!g7)
++		return NULL;
++
++	g7->battery_percent = -1;
++	g7->xpad = xpad;
++	g7->hb_buf = kmalloc(G7PRO_REPORT_LEN, GFP_KERNEL);
++	if (!g7->hb_buf)
++		goto err;
++
++	ret = usb_string(xpad->udev, xpad->udev->descriptor.iSerialNumber,
++			 serial, sizeof(serial));
++	if (ret > 0)
++		g7->uniq = kstrdup(serial, GFP_KERNEL);
++	else
++		g7->uniq = kasprintf(GFP_KERNEL, "g7pro-%d-%d",
++				     xpad->udev->bus->busnum,
++				     xpad->udev->devnum);
++	if (!g7->uniq)
++		goto err;
++
++	g7->motion = input_allocate_device();
++	if (!g7->motion)
++		goto err;
++
++	g7->motion->name = "GameSir G7 Pro Motion Sensors";
++	g7->motion->phys = xpad->phys;
++	g7->motion->uniq = g7->uniq;
++	usb_to_input_id(xpad->udev, &g7->motion->id);
++	g7->motion->dev.parent = &xpad->intf->dev;
++	__set_bit(INPUT_PROP_ACCELEROMETER, g7->motion->propbit);
++	__set_bit(EV_MSC, g7->motion->evbit);
++	__set_bit(MSC_TIMESTAMP, g7->motion->mscbit);
++	input_set_abs_params(g7->motion, ABS_X, -32768, 32767, 16, 0);
++	input_set_abs_params(g7->motion, ABS_Y, -32768, 32767, 16, 0);
++	input_set_abs_params(g7->motion, ABS_Z, -32768, 32767, 16, 0);
++	input_abs_set_res(g7->motion, ABS_X, 8192);
++	input_abs_set_res(g7->motion, ABS_Y, 8192);
++	input_abs_set_res(g7->motion, ABS_Z, 8192);
++	input_set_abs_params(g7->motion, ABS_RX, -32768, 32767, 16, 0);
++	input_set_abs_params(g7->motion, ABS_RY, -32768, 32767, 16, 0);
++	input_set_abs_params(g7->motion, ABS_RZ, -32768, 32767, 16, 0);
++	input_abs_set_res(g7->motion, ABS_RX, 16);
++	input_abs_set_res(g7->motion, ABS_RY, 16);
++	input_abs_set_res(g7->motion, ABS_RZ, 16);
++
++	INIT_DELAYED_WORK(&g7->hb_work, g7pro_hb_work);
++	return g7;
++
++err:
++	kfree(g7->uniq);
++	kfree(g7->hb_buf);
++	input_free_device(g7->motion);
++	kfree(g7);
++	return NULL;
++}
++
++static int g7pro_sensor_start(struct usb_xpad *xpad)
++{
++	struct g7pro_sensor *g7 = xpad->g7pro;
++	struct power_supply_config cfg = { .drv_data = g7 };
++	struct power_supply_desc *desc;
++	int ret;
++	int i;
++
++	if (!g7)
++		return 0;
++
++	ret = input_register_device(g7->motion);
++	if (ret)
++		return ret;
++	g7->motion_registered = true;
++
++	desc = devm_kzalloc(&xpad->intf->dev, sizeof(*desc), GFP_KERNEL);
++	if (!desc)
++		return -ENOMEM;
++	*desc = g7pro_battery_desc;
++	desc->name = devm_kasprintf(&xpad->intf->dev, GFP_KERNEL,
++				    "g7pro-%d-%d-battery",
++				    xpad->udev->bus->busnum,
++				    xpad->udev->devnum);
++	if (!desc->name)
++		return -ENOMEM;
++	g7->battery = power_supply_register(&xpad->intf->dev, desc, &cfg);
++	if (IS_ERR(g7->battery)) {
++		g7->battery = NULL;
++		return PTR_ERR(g7->battery);
++	}
++
++	g7->started = true;
++
++	/* Warm up the vendor session before report 0x10 starts. */
++	for (i = 0; i < 4; i++) {
++		ret = g7pro_send_heartbeat(xpad);
++		if (ret)
++			return ret;
++		msleep(250);
++	}
++
++	schedule_delayed_work(&g7->hb_work, msecs_to_jiffies(300));
++	return 0;
++}
++
++static void g7pro_sensor_stop(struct usb_xpad *xpad)
++{
++	struct g7pro_sensor *g7 = xpad->g7pro;
++
++	if (!g7)
++		return;
++	g7->started = false;
++	cancel_delayed_work_sync(&g7->hb_work);
++	if (g7->battery)
++		power_supply_unregister(g7->battery);
++	if (g7->motion_registered)
++		input_unregister_device(g7->motion);
++	else if (g7->motion)
++		input_free_device(g7->motion);
++	kfree(g7->hb_buf);
++	kfree(g7->uniq);
++	kfree(g7);
++	xpad->g7pro = NULL;
++}
++
+ static int xpad_init_input(struct usb_xpad *xpad);
+ static void xpad_deinit_input(struct usb_xpad *xpad);
+ static int xpad_start_input(struct usb_xpad *xpad);
+@@ -1242,6 +1518,11 @@ static void xpad_irq_in(struct urb *urb)
+ 		goto exit;
+ 	}
+ 
++	if (xpad->g7pro && urb->actual_length >= 61 && xpad->idata[0] == 0x10) {
++		g7pro_handle_report(xpad, xpad->idata, urb->actual_length);
++		goto exit;
++	}
++
+ 	switch (xpad->xtype) {
+ 	case XTYPE_XBOX360:
+ 		xpad360_process_packet(xpad, xpad->dev, 0, xpad->idata);
+@@ -1955,6 +2236,8 @@ static int xpad_init_input(struct usb_xpad *xpad)
+ 	xpad->dev = input_dev;
+ 	input_dev->name = xpad->name;
+ 	input_dev->phys = xpad->phys;
++	if (xpad->g7pro)
++		input_dev->uniq = xpad->g7pro->uniq;
+ 	usb_to_input_id(xpad->udev, &input_dev->id);
+ 
+ 	if (xpad->xtype == XTYPE_XBOX360W) {
+@@ -2196,6 +2479,15 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
+ 		}
+ 	}
+ 
++	if (g7pro_is_device(udev)) {
++		xpad->name = "GameSir G7 Pro";
++		xpad->g7pro = g7pro_sensor_alloc(xpad);
++		if (!xpad->g7pro) {
++			error = -ENOMEM;
++			goto err_deinit_output;
++		}
++	}
++
+ 	if (xpad->xtype == XTYPE_XBOX360W) {
+ 		/*
+ 		 * Submit the int URB immediately rather than waiting for open
+@@ -2217,8 +2509,16 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
+ 		udev->quirks |= USB_QUIRK_RESET_RESUME;
+ 	} else {
+ 		error = xpad_init_input(xpad);
+-		if (error)
++		if (error) {
++			g7pro_sensor_stop(xpad);
+ 			goto err_deinit_output;
++		}
++		error = g7pro_sensor_start(xpad);
++		if (error) {
++			xpad_deinit_input(xpad);
++			g7pro_sensor_stop(xpad);
++			goto err_deinit_output;
++		}
+ 	}
+ 	return 0;
+ 
+@@ -2240,7 +2540,12 @@ static void xpad_disconnect(struct usb_interface *intf)
+ 	if (xpad->xtype == XTYPE_XBOX360W)
+ 		xpad360w_stop_input(xpad);
+ 
++	if (xpad->g7pro) {
++		xpad->g7pro->started = false;
++		cancel_delayed_work_sync(&xpad->g7pro->hb_work);
++	}
+ 	xpad_deinit_input(xpad);
++	g7pro_sensor_stop(xpad);
+ 
+ 	/*
+ 	 * Now that both input device and LED device are gone we can
+@@ -2259,6 +2564,26 @@ static void xpad_disconnect(struct usb_interface *intf)
+ 	usb_set_intfdata(intf, NULL);
+ }
+ 
++static void g7pro_suspend(struct usb_xpad *xpad)
++{
++	struct g7pro_sensor *g7 = xpad->g7pro;
++
++	if (!g7)
++		return;
++	g7->started = false;
++	cancel_delayed_work_sync(&g7->hb_work);
++}
++
++static void g7pro_resume(struct usb_xpad *xpad)
++{
++	struct g7pro_sensor *g7 = xpad->g7pro;
++
++	if (!g7)
++		return;
++	g7->started = true;
++	schedule_delayed_work(&g7->hb_work, msecs_to_jiffies(300));
++}
++
+ static int xpad_suspend(struct usb_interface *intf, pm_message_t message)
+ {
+ 	struct usb_xpad *xpad = usb_get_intfdata(intf);
+@@ -2288,6 +2613,7 @@ static int xpad_suspend(struct usb_interface *intf, pm_message_t message)
+ 	}
+ 
+ 	xpad_stop_output(xpad);
++	g7pro_suspend(xpad);
+ 
+ 	return 0;
+ }
+@@ -2296,6 +2622,7 @@ static int xpad_resume(struct usb_interface *intf)
+ {
+ 	struct usb_xpad *xpad = usb_get_intfdata(intf);
+ 	struct input_dev *input = xpad->dev;
++	int ret = 0;
+ 
+ 	xpad->delayed_init_done = false;
+ 	if (xpad->xtype == XTYPE_XBOX360W)
+@@ -2303,19 +2630,19 @@ static int xpad_resume(struct usb_interface *intf)
+ 
+ 	guard(mutex)(&input->mutex);
+ 
+-	if (input_device_enabled(input))
+-		return xpad_start_input(xpad);
+-
+-	if (xpad->xtype == XTYPE_XBOXONE) {
++	if (input_device_enabled(input)) {
++		ret = xpad_start_input(xpad);
++	} else if (xpad->xtype == XTYPE_XBOXONE) {
+ 		/*
+ 		 * Even if there are no users, we'll send Xbox One pads
+ 		 * the startup sequence so they don't sit there and
+ 		 * blink until somebody opens the input device again.
+ 		 */
+-		return xpad_start_xbox_one(xpad);
++		ret = xpad_start_xbox_one(xpad);
+ 	}
+ 
+-	return 0;
++	g7pro_resume(xpad);
++	return ret;
+ }
+ 
+ static struct usb_driver xpad_driver = {
+-- 
+2.56.0
+

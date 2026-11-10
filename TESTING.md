@@ -15,6 +15,19 @@ Pinned to commit `33da321bbc521b4b085712a38e54d06121bb1b00`.
 | smatch | not packaged on CachyOS; scan-build could not be driven with the kernel LLVM flags | not run; sparse/checkpatch/KFENCE used |
 | KASAN/KCSAN/lockdep | host kernel lacks `CONFIG_KASAN`, `CONFIG_KCSAN`, `CONFIG_PROVE_LOCKING`; `CONFIG_KFENCE=y` | blocked by kernel config; KFENCE active |
 
+## xpad extension (upstream direction)
+
+| Test | Status |
+|---|---|
+| Custom `xpad.ko` binds 109b without `g7pro` | pass |
+| Gamepad + Motion Sensors, same uniq | pass |
+| SDL3 `gyro=1 accel=1`, live rotation | pass |
+| Battery `g7pro-1-16-battery`: 100 / Full | pass |
+| FF_RUMBLE via existing xpad path | pass — `rumble_test: OK`, proper grip rumble |
+| Restore stock xpad after test | pass |
+
+Log: `/tmp/xpad-g7pro-test.log`.
+
 ## Hardware
 
 | Test | Status |
