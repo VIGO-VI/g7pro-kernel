@@ -21,3 +21,4 @@ tests/rumble_test
 tests/rumble_test_dbg
 tests/evdev_caps
 .upstream-tree/
+.xpad-upstream-tree/
