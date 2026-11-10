@@ -5,6 +5,8 @@ Not submitted.  The human submitter reviews, adds `Signed-off-by`, and sends.
 - `0000-cover-letter.txt` — cover letter with AI disclosure and test evidence.
 - `0001-Input-xpad-GameSir-G7-Pro-IMU.patch` — xpad change plus the new
   `g7pro.h` parser header.
+- `BT-RUMBLE.md` — separate proposal for Bluetooth force feedback (HID
+  driver); not submitted, not part of the xpad series.
 
 The standalone `g7pro` driver is kept in `prototype/` as the reference and
 fallback; it is not the upstream submission.

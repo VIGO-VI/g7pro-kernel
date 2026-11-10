@@ -165,11 +165,14 @@ shape follows `drivers/hid/hid-playstation.c`; gamepad conventions follow
 
 ## Bluetooth
 
-The retail pad's Bluetooth mode (`3537:1022`) exposes a generic HID gamepad
-only: no vendor interface, no IMU, no battery, no force feedback.  This
-repository targets wired and 2.4 GHz USB modes.  An undocumented Xbox
-Bluetooth mode exists on the hardware; support depends on what that mode
-exposes.
+The retail pad's Bluetooth mode (`3537:1022`) exposes a generic HID gamepad:
+no vendor interface, no IMU, no battery, and no force feedback in its
+descriptor.  This repository targets wired and 2.4 GHz USB modes.
+
+Rumble can still be driven over Bluetooth: the firmware accepts the standard
+Xbox One output report (`03 0F LT RT LM RM`) on the hidraw node even though it
+never advertises it.  The userspace bridge in `g7motion` (`g7bt`) uses that
+today.  A native HID driver proposal is in `upstream/BT-RUMBLE.md`.
 
 ## License
 
