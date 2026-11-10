@@ -7,6 +7,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 LOG=/tmp/g7pro-hotplug.log
 exec >"$LOG" 2>&1
 set -x
+dmesg -C 2>/dev/null || true
 
 cleanup() {
 	rmmod g7pro 2>/dev/null || true

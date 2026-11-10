@@ -12,8 +12,8 @@ Pinned to commit `33da321bbc521b4b085712a38e54d06121bb1b00`.
 | checkpatch | `scripts/checkpatch.pl --no-tree --file g7pro.c` | 0 errors, 0 warnings |
 | Parser unit tests | `cc -fsanitize=address,undefined -I. tests/parser_test.c` | pass |
 | Parser fuzz loop | 200k random buffers in `parser_test.c` | pass under ASan/UBSan |
-| smatch | tool not packaged on CachyOS | pending / substitute review |
-| KASAN/KCSAN/lockdep | host kernel lacks `CONFIG_KASAN`, `CONFIG_KCSAN`, `CONFIG_PROVE_LOCKING` | blocked by kernel config |
+| smatch | not packaged on CachyOS; scan-build could not be driven with the kernel LLVM flags | not run; sparse/checkpatch/KFENCE used |
+| KASAN/KCSAN/lockdep | host kernel lacks `CONFIG_KASAN`, `CONFIG_KCSAN`, `CONFIG_PROVE_LOCKING`; `CONFIG_KFENCE=y` | blocked by kernel config; KFENCE active |
 
 ## Hardware
 
@@ -23,11 +23,11 @@ Pinned to commit `33da321bbc521b4b085712a38e54d06121bb1b00`.
 | SDL3 `gyro=1 accel=1`, stationary accel ≈ 9.8 m/s² | pass — 1 gamepad, gyro/accel enabled; stationary accel 9.8–10.0 m/s² |
 | Observable rotation → gyro integration | pass — rotated controller produced ±3–5 rad/s gyro and changing accel |
 | Battery capacity/status in `/sys/class/power_supply` | pass — `g7pro-1-4-battery`: 100, Full |
-| Parity with `xpad` evdev sticks/buttons/triggers | pending |
-| Hotplug / disconnect mid-URB | pending |
-| Suspend/resume | pending |
-| Module unload, `xpad` rebind | pending |
-| Rumble/FF | protocol sends and the grips vibrated once; `tests/rumble_test` segfaults after play, under gdb |
+| Parity with `xpad` evdev sticks/buttons/triggers | structural pass — identical axes/key codes/FF bits; only paddle buttons differ. Dynamic event comparison pending. |
+| Hotplug / disconnect mid-URB | pass — whole USB device unbound/rebound while streaming; both input devices recreated; SDL3 gyro=1 accel=1 |
+| Suspend/resume | pending (manual) |
+| Module unload, `xpad` rebind | pass — `hw-test.sh` removes the module and rebinds xpad |
+| Rumble/FF | pass — `rumble_test: OK`, grip vibration observed, no new `scheduling while atomic` |
 
 ## Evidence
 

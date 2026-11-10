@@ -17,6 +17,7 @@ SDL_PROBE="/home/greenstar/Projects/g7motion/build/sdl3_probe"
 
 exec >"$LOG" 2>&1
 set -x
+dmesg -C 2>/dev/null || true
 
 cleanup() {
 	rmmod g7pro 2>/dev/null || true
