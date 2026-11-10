@@ -26,7 +26,7 @@ This adds a USB input driver that:
 Tested on a wired 3537:109b (bcdDevice 0x0240), SDL3 3.4.18:
 
 - `input: GameSir G7 Pro` and `GameSir G7 Pro Motion Sensors`; same
-  Uniq=0000377903ED91EB,
+  Uniq=<controller-serial>,
 - udev: ID_INPUT_JOYSTICK on the gamepad, ID_INPUT_ACCELEROMETER on the
   motion node,
 - SDL3: one gamepad, gyro=1 accel=1; stationary accel ~9.8-10.0 m/s^2;

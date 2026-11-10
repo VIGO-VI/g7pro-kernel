@@ -4,6 +4,7 @@
 # Run as root.  Log: /tmp/g7pro-hotplug.log.
 set -u
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+SDL_PROBE=${SDL_PROBE:-$ROOT/../g7motion/build/sdl3_probe}
 LOG=/tmp/g7pro-hotplug.log
 exec >"$LOG" 2>&1
 set -x
@@ -50,6 +51,6 @@ echo "=== dmesg ==="
 dmesg | tail -100
 
 echo "=== SDL3 probe ==="
-if [ -x /home/greenstar/Projects/g7motion/build/sdl3_probe ]; then
-	/home/greenstar/Projects/g7motion/build/sdl3_probe || true
+if [ -x "$SDL_PROBE" ]; then
+	"$SDL_PROBE" || true
 fi

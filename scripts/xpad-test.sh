@@ -3,6 +3,7 @@
 # Test the xpad extension as a temporary module.  Run as root.
 set -u
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+SDL_PROBE=${SDL_PROBE:-$ROOT/../g7motion/build/sdl3_probe}
 LOG=/tmp/xpad-g7pro-test.log
 exec >"$LOG" 2>&1
 set -x
@@ -43,4 +44,4 @@ fi
 echo "=== SDL3 probe ==="
 echo "Rotate the controller now; the probe runs for 8 seconds." >/dev/tty 2>/dev/null || true
 sleep 3
-[ -x /home/greenstar/Projects/g7motion/build/sdl3_probe ] && /home/greenstar/Projects/g7motion/build/sdl3_probe || true
+if [ -x "$SDL_PROBE" ]; then "$SDL_PROBE" || true; fi

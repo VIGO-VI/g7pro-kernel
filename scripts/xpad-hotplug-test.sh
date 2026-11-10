@@ -3,6 +3,7 @@
 # Disconnect/reconnect the USB device while the custom xpad is streaming.
 set -u
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+SDL_PROBE=${SDL_PROBE:-$ROOT/../g7motion/build/sdl3_probe}
 LOG=/tmp/xpad-g7pro-hotplug.log
 exec >"$LOG" 2>&1
 set -x
@@ -39,4 +40,4 @@ done
 echo "=== dmesg ==="
 dmesg | tail -120
 echo "=== SDL3 probe ==="
-[ -x /home/greenstar/Projects/g7motion/build/sdl3_probe ] && /home/greenstar/Projects/g7motion/build/sdl3_probe || true
+if [ -x "$SDL_PROBE" ]; then "$SDL_PROBE" || true; fi

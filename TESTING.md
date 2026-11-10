@@ -33,7 +33,7 @@ Log: `/tmp/xpad-g7pro-test.log`.
 
 | Test | Status |
 |---|---|
-| Module loads, creates gamepad + Motion Sensors | pass — `input47` gamepad, `input48` Motion Sensors, same `Uniq=0000377903ED91EB` |
+| Module loads, creates gamepad + Motion Sensors | pass — `input47` gamepad, `input48` Motion Sensors, same `Uniq=<controller-serial>` |
 | SDL3 `gyro=1 accel=1`, stationary accel ≈ 9.8 m/s² | pass — 1 gamepad, gyro/accel enabled; stationary accel 9.8–10.0 m/s² |
 | Observable rotation → gyro integration | pass — rotated controller produced ±3–5 rad/s gyro and changing accel |
 | Battery capacity/status in `/sys/class/power_supply` | pass — `g7pro-1-4-battery`: 100, Full |

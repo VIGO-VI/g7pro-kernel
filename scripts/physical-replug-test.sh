@@ -4,6 +4,7 @@
 # Log: /tmp/g7pro-replug.log.  Run as root, same USB port both times.
 set -u
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+SDL_PROBE=${SDL_PROBE:-$ROOT/../g7motion/build/sdl3_probe}
 LOG=/tmp/g7pro-replug.log
 exec >"$LOG" 2>&1
 set -x
@@ -74,6 +75,6 @@ echo "=== input devices after handover ==="
 grep -A12 -B2 -i "GameSir G7 Pro" /proc/bus/input/devices || true
 
 echo "=== SDL3 probe ==="
-if [ -x /home/greenstar/Projects/g7motion/build/sdl3_probe ]; then
-	/home/greenstar/Projects/g7motion/build/sdl3_probe || true
+if [ -x "$SDL_PROBE" ]; then
+	"$SDL_PROBE" || true
 fi

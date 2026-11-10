@@ -13,7 +13,7 @@ set -u
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 MOD="$ROOT/g7pro.ko"
 LOG=/tmp/g7pro-kernel-test.log
-SDL_PROBE="/home/greenstar/Projects/g7motion/build/sdl3_probe"
+SDL_PROBE=${SDL_PROBE:-$ROOT/../g7motion/build/sdl3_probe}
 
 exec >"$LOG" 2>&1
 set -x
