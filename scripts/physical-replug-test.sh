@@ -40,6 +40,20 @@ while [ ! -e "/sys/bus/usb/devices/$BUS" ] && [ $n -lt 600 ]; do
 done
 sleep 4
 
+PID=$(cat "/sys/bus/usb/devices/$BUS/idProduct" 2>/dev/null || echo unknown)
+echo "PID after replug: $PID"
+if [ "$PID" = "1022" ]; then
+	echo "Controller returned as native/GIP 1022." >/dev/tty 2>/dev/null || true
+	echo "Hold Share+Menu for ~4s until the LED blinks, then wait..." >/dev/tty 2>/dev/null || true
+	n=0
+	while [ "$(cat "/sys/bus/usb/devices/$BUS/idProduct" 2>/dev/null)" = "1022" ] && [ $n -lt 600 ]; do
+		n=$((n + 1))
+		sleep 0.1
+	done
+	PID=$(cat "/sys/bus/usb/devices/$BUS/idProduct" 2>/dev/null || echo unknown)
+	echo "PID after mode switch: $PID"
+fi
+
 echo "=== driver after replug ==="
 for d in /sys/bus/usb/drivers/*/"$IF"; do
 	[ -e "$d" ] && echo "bound: $(basename "$(dirname "$d")")"

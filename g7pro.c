@@ -43,6 +43,7 @@
 #define G7PRO_VID		0x3537
 #define G7PRO_PID_WIRED		0x109b
 #define G7PRO_PID_DONGLE	0x109c
+#define G7PRO_PID_HID		0x100a
 
 #define G7PRO_EP_IN		0x82
 #define G7PRO_EP_OUT		0x02
@@ -635,6 +636,7 @@ static void g7pro_disconnect(struct usb_interface *intf)
 static const struct usb_device_id g7pro_id_table[] = {
 	{ USB_DEVICE(G7PRO_VID, G7PRO_PID_WIRED) },
 	{ USB_DEVICE(G7PRO_VID, G7PRO_PID_DONGLE) },
+	{ USB_DEVICE(G7PRO_VID, G7PRO_PID_HID) },
 	{ }
 };
 MODULE_DEVICE_TABLE(usb, g7pro_id_table);
