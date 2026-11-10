@@ -58,7 +58,10 @@ Known issues / open questions:
 AI-assistance disclosure, per Documentation/process/coding-assistants.rst
 and generated-content.rst:
 
-- An AI coding assistant was used to write the driver, tests and
+- Tools: OpenCode (terminal coding agent) using the DeepSeek V4.1 Flash
+  model.  Prompting was iterative; the prompts described the target
+  behaviour and the protocol evidence, not the final code.
+- Portions affected: the driver, the parser header, the tests and the
   documentation.
 - Inputs: the g7ctl/Deadband protocol notes, live USB captures from the
   device, the SDL3 GameSir 8K HID driver, and hid-playstation/xpad.

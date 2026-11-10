@@ -59,14 +59,22 @@ Known issues / review requests:
 AI-assistance disclosure, per Documentation/process/coding-assistants.rst
 and generated-content.rst:
 
-- An AI coding assistant was used to write the xpad changes, the parser
-  header, tests and documentation.
+- Tools: OpenCode (terminal coding agent) using the DeepSeek V4.1 Flash
+  model.  Prompting was iterative; the prompts described the target
+  behaviour (IMU as a sibling input device, battery, heartbeat) and the
+  protocol evidence, not the final code.
+- Portions affected: the new xpad code paths, the g7pro.h parser header,
+  the tests and the documentation.  No pre-existing xpad code was
+  rewritten; the gamepad and FF paths are untouched.
 - Inputs: the g7ctl/Deadband protocol notes, live USB captures from the
   device, SDL3's GameSir 8K HID driver, hid-playstation and the existing
   xpad driver.
+- Testing: hardware runs, parser unit tests, ASan/UBSan fuzzing, W=1,
+  sparse and checkpatch, as listed above.  The harness and logs are
+  public at https://github.com/VIGO-VI/g7pro-kernel.
 - The AI generated the initial implementation and tests; the submitter
-  ran the hardware tests, reviewed the result, and takes responsibility
-  for it.
+  ran the hardware tests, reviewed the result line by line, and takes
+  responsibility for it.
 - The assistant did not send this series and has not added a
   Signed-off-by.  The human submitter must review, test, sign off and
   send it.
