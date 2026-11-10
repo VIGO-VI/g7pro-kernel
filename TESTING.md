@@ -24,7 +24,7 @@ Pinned to commit `33da321bbc521b4b085712a38e54d06121bb1b00`.
 | Observable rotation → gyro integration | pass — rotated controller produced ±3–5 rad/s gyro and changing accel |
 | Battery capacity/status in `/sys/class/power_supply` | pass — `g7pro-1-4-battery`: 100, Full |
 | Parity with `xpad` evdev sticks/buttons/triggers | structural pass — identical axes/key codes/FF bits; only paddle buttons differ. Dynamic event comparison pending. |
-| Hotplug / disconnect mid-URB | pass — whole USB device unbound/rebound while streaming; both input devices recreated; SDL3 gyro=1 accel=1 |
+| Hotplug / disconnect mid-URB | pass — USB unbind/rebind and physical replug; both devices recreated; SDL3 gyro=1 accel=1. `xpad` wins the re-probe; handover to `g7pro` needed. |
 | Suspend/resume | pending (manual) |
 | Module unload, `xpad` rebind | pass — `hw-test.sh` removes the module and rebinds xpad |
 | Rumble/FF | pass — `rumble_test: OK`, grip vibration observed, no new `scheduling while atomic` |
