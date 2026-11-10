@@ -1,7 +1,6 @@
 # Testing and audit status
 
-Pinned to the working tree at the time of writing; see the commit hash in
-`REVIEW.local.md` once the first verified commit exists.
+Pinned to commit `33da321bbc521b4b085712a38e54d06121bb1b00`.
 
 ## Automated
 
