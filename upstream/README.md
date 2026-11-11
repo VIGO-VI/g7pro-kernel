@@ -7,6 +7,8 @@ Not submitted.  The human submitter reviews, adds `Signed-off-by`, and sends.
   `g7pro.h` parser header.
 - `BT-RUMBLE.md` — separate proposal for Bluetooth force feedback (HID
   driver); not submitted, not part of the xpad series.
+- `JUSTIFICATION.md` — hunk-by-hunk rationale and a claim/evidence/gap matrix.
+  This is the document to read before reviewing the patch.
 
 The standalone `g7pro` driver is kept in `prototype/` as the reference and
 fallback; it is not the upstream submission.
