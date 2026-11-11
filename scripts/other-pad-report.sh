@@ -50,15 +50,24 @@ if [ ! -d "$KDIR" ]; then
 	say "FAIL: kernel headers missing ($KDIR). Install the headers for $(uname -r)."
 	exit 1
 fi
+# Use the compiler the running kernel was built with: clang-built kernels
+# reject the GCC-only flags recorded in their build config and vice versa.
+MAKE_ARGS=
+if grep -qi 'clang' /proc/version; then
+	MAKE_ARGS="LLVM=1"
+	say "kernel built with clang; using LLVM=1"
+fi
 if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != root ]; then
-	BUILD_CMD="make -C '$KDIR' M='$ROOT/xpad' modules"
+	BUILD_CMD="make $MAKE_ARGS -C '$KDIR' M='$ROOT/xpad' modules"
 	su -s /bin/sh "$SUDO_USER" -c "$BUILD_CMD" >>"$OUT" 2>&1 || BUILD_RC=$?
 else
-	make -C "$KDIR" M="$ROOT/xpad" modules >>"$OUT" 2>&1 || BUILD_RC=$?
+	make $MAKE_ARGS -C "$KDIR" M="$ROOT/xpad" modules >>"$OUT" 2>&1 || BUILD_RC=$?
 fi
 if [ "${BUILD_RC:-0}" != 0 ]; then
-	say "FAIL: module build failed. The log above says why."
-	say "Most common cause: Secure Boot. Either sign the module or test on a machine where it is off."
+	say "FAIL: module build failed; see the compiler output above."
+	say "Common causes: headers for $(uname -r) are missing, the kernel was built"
+	say "with a different compiler than the one installed, or the module needs"
+	say "signing for Secure Boot."
 	exit 1
 fi
 say "build: ok ($MOD)"
@@ -86,7 +95,8 @@ capture_caps() {
 		base="/sys/class/input/$(basename "$ev")/device"
 		[ -n "$(cat "$base/capabilities/abs" 2>/dev/null)" ] || continue
 		name=$(cat "$base/name" 2>/dev/null)
-		echo "-- $ev $name" >>"$out"
+		# Event numbers change across module reload; key on the name only.
+		echo "-- $name" >>"$out"
 		/tmp/evdev_caps_report "$ev" >>"$out" 2>&1 || true
 	done
 }
