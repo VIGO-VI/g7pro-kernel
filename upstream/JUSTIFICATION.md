@@ -265,7 +265,7 @@ by then.  **Gap:** KCSAN has not confirmed this; see §7.
 | lockdep | no lock-order proof | `CONFIG_PROVE_LOCKING`, same harness |
 | suspend/resume | the 1 s vendor warmup is **not** repeated on resume; IMU may or may not restart | suspend/resume on real hardware with `sdl3_probe` before/after |
 | second controller | "no regression on other xpad pads" is unproven | run `xpad-test.sh` on another pad; request in README |
-| teardown race | proven under load: device unbound while a 3 s effect was playing, then rebound | `REBIND-GAMEPAD-OK` in the evidence log |
+| teardown race | proven under load, with stock-xpad and no-module controls | `upstream/EVIDENCE.md` |
 | trigger motors | the packet has two trigger channels; no perceptible vibration | either document as unused or find the correct values |
 | `0x109c`/`0x100a` | whitelisted, but only `109b` was tested | test reports from owners of those revisions |
 | multiple pads | battery/input names are per-port, but two identical pads are untested | two-device test |

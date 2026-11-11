@@ -31,6 +31,14 @@ xpad)
 	make -C "$KERNEL_SRC" LLVM=1 M="$REPO/xpad" modules >/dev/null
 	KO="$REPO/xpad/xpad.ko"
 	;;
+stock)
+	# The unmodified in-tree xpad, for a control run against the same kernel.
+	KO="$KERNEL_SRC/drivers/input/joystick/xpad.ko"
+	;;
+none)
+	# No module: control run to attribute reports that happen before load.
+	KO=
+	;;
 g7pro)
 	make -C "$KERNEL_SRC" LLVM=1 M="$REPO" modules >/dev/null
 	KO="$REPO/g7pro.ko"
@@ -39,7 +47,7 @@ g7pro)
 	echo "unknown MODULE=$MODULE"; exit 1
 	;;
 esac
-cp "$KO" "$WORK/lib/modules/$MODULE.ko"
+[ -n "$KO" ] && cp "$KO" "$WORK/lib/modules/$MODULE.ko"
 
 # Static test binaries.
 cc -static -O2 -Wall -Wextra -o "$WORK/tests/evdev_caps" "$REPO/tests/evdev_caps.c"
@@ -72,17 +80,14 @@ echo "=== evdev + ff ==="
 FOUND=
 for ev in /dev/input/event*; do
 	[ -e "$ev" ] || continue
-	name=$(cat "/sys/class/input/$(basename "$ev")/device/name" 2>/dev/null)
-	case "$name" in
-	*"GameSir G7 Pro"*)
-		/tests/evdev_caps "$ev"
-		if [ "$name" = "GameSir G7 Pro" ]; then
-			GAME_EV=$ev
-			/tests/rumble_test "$ev" 5000 || echo "rumble_test failed"
-			FOUND=1
-		fi
-		;;
-	esac
+	base="/sys/class/input/$(basename "$ev")/device"
+	[ "$(cat "$base/id/vendor" 2>/dev/null)" = 3537 ] || continue
+	# The gamepad has key capabilities; the motion node does not.
+	[ -n "$(cat "$base/capabilities/key" 2>/dev/null)" ] || continue
+	/tests/evdev_caps "$ev"
+	GAME_EV=$ev
+	/tests/rumble_test "$ev" 5000 || echo "rumble_test failed"
+	FOUND=1
 done
 [ -n "$FOUND" ] && echo "GAMEPAD-FOUND" || echo "NO-GAMEPAD"
 
@@ -108,8 +113,10 @@ if [ -n "$FOUND" ]; then
 	echo "GAMEPAD-FOUND after rebind" >/dev/null
 	for ev in /dev/input/event*; do
 		[ -e "$ev" ] || continue
-		name=$(cat "/sys/class/input/$(basename "$ev")/device/name" 2>/dev/null)
-		[ "$name" = "GameSir G7 Pro" ] && echo "REBIND-GAMEPAD-OK"
+		base="/sys/class/input/$(basename "$ev")/device"
+		[ "$(cat "$base/id/vendor" 2>/dev/null)" = 3537 ] || continue
+		[ -n "$(cat "$base/capabilities/key" 2>/dev/null)" ] || continue
+		echo "REBIND-GAMEPAD-OK"
 	done
 fi
 
@@ -119,7 +126,11 @@ echo "=== init: done ==="
 sync
 poweroff -f
 EOF
-sed -i "s/__MODULE__/$MODULE/" "$WORK/init"
+if [ "$MODULE" = none ]; then
+	sed -i "s|insmod /lib/modules/__MODULE__.ko .*|echo \"control run: no module loaded\"|" "$WORK/init"
+else
+	sed -i "s/__MODULE__/$MODULE/" "$WORK/init"
+fi
 chmod +x "$WORK/init"
 
 # cpio without busybox dependency on the host.
