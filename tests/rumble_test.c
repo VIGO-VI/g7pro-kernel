@@ -4,11 +4,12 @@
  * one second, stop it.  Run as root against the gamepad event node.
  *
  * cc -O2 -Wall -Wextra -o rumble_test rumble_test.c
- * ./rumble_test /dev/input/eventN
+ * ./rumble_test /dev/input/eventN [duration_ms]
  */
 #include <fcntl.h>
 #include <linux/input.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -18,11 +19,17 @@ int main(int argc, char **argv)
 	unsigned long ffbit[1 + FF_MAX / (8 * sizeof(unsigned long))] = {};
 	struct ff_effect effect = {};
 	struct input_event play = {};
+	unsigned int duration_ms = 1000;
 	int fd;
 
-	if (argc != 2) {
-		fprintf(stderr, "usage: %s /dev/input/eventN\n", argv[0]);
+	if (argc < 2 || argc > 3) {
+		fprintf(stderr, "usage: %s /dev/input/eventN [duration_ms]\n", argv[0]);
 		return 2;
+	}
+	if (argc == 3) {
+		duration_ms = (unsigned int)strtoul(argv[2], NULL, 10);
+		if (duration_ms == 0 || duration_ms > 60000)
+			duration_ms = 1000;
 	}
 
 	fd = open(argv[1], O_RDWR | O_CLOEXEC);
@@ -45,7 +52,7 @@ int main(int argc, char **argv)
 	effect.id = -1;
 	effect.u.rumble.strong_magnitude = 0xffff;
 	effect.u.rumble.weak_magnitude = 0xffff;
-	effect.replay.length = 1000;
+	effect.replay.length = duration_ms;
 	effect.replay.delay = 0;
 
 	if (ioctl(fd, EVIOCSFF, &effect) < 0) {
@@ -61,8 +68,8 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	printf("rumble_test: playing 1 s\n");
-	usleep(1000000);
+	printf("rumble_test: playing %u ms\n", duration_ms);
+	usleep((useconds_t)duration_ms * 1000);
 
 	play.value = 0;
 	(void)write(fd, &play, sizeof(play));

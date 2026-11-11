@@ -62,7 +62,7 @@ for ev in /dev/input/event*; do
 	*"GameSir G7 Pro"*)
 		/tests/evdev_caps "$ev"
 		if [ "$name" = "GameSir G7 Pro" ]; then
-			/tests/rumble_test "$ev" || echo "rumble_test failed"
+			/tests/rumble_test "$ev" 5000 || echo "rumble_test failed"
 			FOUND=1
 		fi
 		;;

@@ -312,13 +312,17 @@ static void g7pro_ff_work(struct work_struct *work)
 	g7->ff_buf[7] = 0;	/* right trigger */
 	g7->ff_buf[8] = strong;
 	g7->ff_buf[9] = weak;
-	g7->ff_buf[10] = duration;
+	/* Match xpad's GIP rumble: run until a zeroed packet stops it. */
+	g7->ff_buf[10] = duration ? 0xff : 0x00;	/* on period */
+	g7->ff_buf[11] = 0x00;				/* off period */
+	g7->ff_buf[12] = duration ? 0xff : 0x00;	/* repeat count */
 
 	ret = usb_interrupt_msg(g7->udev,
 				usb_sndintpipe(g7->udev, G7PRO_EP_OUT),
 				g7->ff_buf, 13, &actual, 1000);
 	if (ret)
 		dev_err_ratelimited(&g7->intf->dev, "rumble failed: %d\n", ret);
+
 }
 
 static int g7pro_play_effect(struct input_dev *dev, void *data,
@@ -334,14 +338,8 @@ static int g7pro_play_effect(struct input_dev *dev, void *data,
 	strong = ((effect->u.rumble.strong_magnitude >> 8) * 100 + 127) / 255;
 	weak = ((effect->u.rumble.weak_magnitude >> 8) * 100 + 127) / 255;
 
-	if (!strong && !weak) {
-		duration = 0;
-	} else if (effect->replay.length == 0xffff) {
-		duration = 255;
-	} else {
-		duration = min_t(u32, max_t(u32, effect->replay.length / 10, 1),
-				 255);
-	}
+	/* Non-zero means "run"; a zeroed packet stops the motors. */
+	duration = (strong || weak) ? 1 : 0;
 
 	spin_lock_irqsave(&g7->ff_lock, flags);
 	g7->ff_strong = strong;
@@ -611,8 +609,8 @@ static void g7pro_disconnect(struct usb_interface *intf)
 	usb_set_intfdata(intf, NULL);
 	atomic_set(&g7->disconnected, 1);
 
-	cancel_delayed_work_sync(&g7->hb_work);
 	cancel_work_sync(&g7->ff_work);
+	cancel_delayed_work_sync(&g7->hb_work);
 	usb_kill_anchored_urbs(&g7->in_anchor);
 
 	if (g7->in_urb) {
