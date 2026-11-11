@@ -22,3 +22,4 @@ tests/rumble_test_dbg
 tests/evdev_caps
 .upstream-tree/
 .xpad-upstream-tree/
+tests/accel_watch
