@@ -163,5 +163,14 @@ say "controller serials, MACs and IPs were replaced with placeholders"
 sec "done"
 say "report: $OUT"
 say "attach that file to the issue; it contains no serials, MACs or IPs."
-[ "$FAILED" = 0 ] || say "the capability diff means a regression worth reporting"
+if [ "$FAILED" = 1 ]; then
+	if lsusb | grep -q '3537:109b'; then
+		say "NOTE: this is the GameSir G7 Pro, whose differences (name and the"
+		say "      new motion node) are expected. This report is not needed for"
+		say "      issue #1, which asks for other controllers."
+	else
+		say "POSSIBLE REGRESSION: a non-GameSir pad changed. Please attach this"
+		say "report and mention it in issue #1."
+	fi
+fi
 exit 0
