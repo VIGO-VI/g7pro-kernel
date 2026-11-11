@@ -182,7 +182,7 @@ index d2eb48d..63eb22a 100644
 +#include "g7pro.h"
  #include <linux/usb/input.h>
  #include <linux/usb/quirks.h>
- 
+
 @@ -793,8 +797,280 @@ struct usb_xpad {
  	time64_t mode_btn_down_ts;
  	bool delay_init;		/* init packets should be delayed */
@@ -253,7 +253,7 @@ index d2eb48d..63eb22a 100644
 +	POWER_SUPPLY_PROP_STATUS,
 +	POWER_SUPPLY_PROP_SCOPE,
  };
- 
+
 +static const struct power_supply_desc g7pro_battery_desc = {
 +	.name = "g7pro-battery",
 +	.type = POWER_SUPPLY_TYPE_BATTERY,
@@ -467,7 +467,7 @@ index d2eb48d..63eb22a 100644
 @@ -1242,6 +1518,11 @@ static void xpad_irq_in(struct urb *urb)
  		goto exit;
  	}
- 
+
 +	if (xpad->g7pro && urb->actual_length >= 61 && xpad->idata[0] == 0x10) {
 +		g7pro_handle_report(xpad, xpad->idata, urb->actual_length);
 +		goto exit;
@@ -483,12 +483,12 @@ index d2eb48d..63eb22a 100644
 +	if (xpad->g7pro)
 +		input_dev->uniq = xpad->g7pro->uniq;
  	usb_to_input_id(xpad->udev, &input_dev->id);
- 
+
  	if (xpad->xtype == XTYPE_XBOX360W) {
 @@ -2196,6 +2479,15 @@ static int xpad_probe(struct usb_interface *intf, const struct usb_device_id *id
  		}
  	}
- 
+
 +	if (g7pro_is_device(udev)) {
 +		xpad->name = "GameSir G7 Pro";
 +		xpad->g7pro = g7pro_sensor_alloc(xpad);
@@ -518,24 +518,24 @@ index d2eb48d..63eb22a 100644
 +		}
  	}
  	return 0;
- 
+
 @@ -2240,7 +2540,12 @@ static void xpad_disconnect(struct usb_interface *intf)
  	if (xpad->xtype == XTYPE_XBOX360W)
  		xpad360w_stop_input(xpad);
- 
+
 +	if (xpad->g7pro) {
 +		xpad->g7pro->started = false;
 +		cancel_delayed_work_sync(&xpad->g7pro->hb_work);
 +	}
  	xpad_deinit_input(xpad);
 +	g7pro_sensor_stop(xpad);
- 
+
  	/*
  	 * Now that both input device and LED device are gone we can
 @@ -2259,6 +2564,26 @@ static void xpad_disconnect(struct usb_interface *intf)
  	usb_set_intfdata(intf, NULL);
  }
- 
+
 +static void g7pro_suspend(struct usb_xpad *xpad)
 +{
 +	struct g7pro_sensor *g7 = xpad->g7pro;
@@ -561,10 +561,10 @@ index d2eb48d..63eb22a 100644
  	struct usb_xpad *xpad = usb_get_intfdata(intf);
 @@ -2288,6 +2613,7 @@ static int xpad_suspend(struct usb_interface *intf, pm_message_t message)
  	}
- 
+
  	xpad_stop_output(xpad);
 +	g7pro_suspend(xpad);
- 
+
  	return 0;
  }
 @@ -2296,6 +2622,7 @@ static int xpad_resume(struct usb_interface *intf)
@@ -572,13 +572,13 @@ index d2eb48d..63eb22a 100644
  	struct usb_xpad *xpad = usb_get_intfdata(intf);
  	struct input_dev *input = xpad->dev;
 +	int ret = 0;
- 
+
  	xpad->delayed_init_done = false;
  	if (xpad->xtype == XTYPE_XBOX360W)
 @@ -2303,19 +2630,19 @@ static int xpad_resume(struct usb_interface *intf)
- 
+
  	guard(mutex)(&input->mutex);
- 
+
 -	if (input_device_enabled(input))
 -		return xpad_start_input(xpad);
 -
@@ -594,13 +594,13 @@ index d2eb48d..63eb22a 100644
 -		return xpad_start_xbox_one(xpad);
 +		ret = xpad_start_xbox_one(xpad);
  	}
- 
+
 -	return 0;
 +	g7pro_resume(xpad);
 +	return ret;
  }
- 
+
  static struct usb_driver xpad_driver = {
--- 
+--
 2.56.0
 

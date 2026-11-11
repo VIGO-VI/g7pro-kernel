@@ -25,7 +25,7 @@ index 222b7fc..512498b 100644
 @@ -13197,6 +13197,13 @@ F:	fs/notify/inotify/
  F:	include/linux/inotify.h
  F:	include/uapi/linux/inotify.h
- 
+
 +GAMESIR G7 PRO INPUT DRIVER
 +M:	Vigo <77800979+VIGO-VI@users.noreply.github.com>
 +L:	linux-input@vger.kernel.org
@@ -43,7 +43,7 @@ index 7755e5b..ce54b10 100644
 @@ -291,6 +291,20 @@ config JOYSTICK_JOYDUMP
  	  To compile this driver as a module, choose M here: the
  	  module will be called joydump.
- 
+
 +config JOYSTICK_G7PRO
 +	tristate "GameSir G7 Pro gamepad and IMU"
 +	depends on USB_ARCH_HAS_HCD
@@ -866,6 +866,6 @@ index 0000000..676d375
 +}
 +
 +#endif /* G7PRO_PROTO_H */
--- 
+--
 2.56.0
 
