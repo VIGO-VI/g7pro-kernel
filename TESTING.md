@@ -14,7 +14,7 @@ Pinned to commit `33da321bbc521b4b085712a38e54d06121bb1b00`.
 | Parser fuzz loop | 200k random buffers in `parser_test.c` | pass under ASan/UBSan |
 | smatch | not packaged on CachyOS; scan-build could not be driven with the kernel LLVM flags | not run; sparse/checkpatch/KFENCE used |
 | Long FF (5 s, VM) | GIP `on-period 0xFF` / `repeat 0xFF` | pass — full 5 s grip rumble |
-| KASAN (VM) | `scripts/kasan-vm/` — mainline 7.3.4 + `CONFIG_KASAN`, real pad via QEMU `usb-host` | pass — clean probe/read/FF/teardown; `GAMEPAD-FOUND` |
+| KASAN (VM, prototype) | `scripts/kasan-vm/` — mainline 7.3.4 + `CONFIG_KASAN`, real pad via QEMU `usb-host` | pass — clean probe/read/FF/teardown; **covers `g7pro.ko`, not `xpad.ko`**; xpad run pending |
 | KCSAN/lockdep | host lacks `CONFIG_KCSAN`, `CONFIG_PROVE_LOCKING` | not run yet |
 
 ## xpad extension (upstream direction)

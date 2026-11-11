@@ -835,19 +835,25 @@ static int g7pro_battery_get_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_PRESENT:
 		val->intval = 1;
 		break;
-	case POWER_SUPPLY_PROP_CAPACITY:
-		val->intval = g7->battery_percent < 0 ? 0 : g7->battery_percent;
+	case POWER_SUPPLY_PROP_CAPACITY: {
+		int percent = READ_ONCE(g7->battery_percent);
+
+		val->intval = percent < 0 ? 0 : percent;
 		break;
-	case POWER_SUPPLY_PROP_STATUS:
-		if (g7->battery_percent < 0)
+	}
+	case POWER_SUPPLY_PROP_STATUS: {
+		int percent = READ_ONCE(g7->battery_percent);
+
+		if (percent < 0)
 			val->intval = POWER_SUPPLY_STATUS_UNKNOWN;
-		else if (g7->charging)
+		else if (READ_ONCE(g7->charging))
 			val->intval = POWER_SUPPLY_STATUS_CHARGING;
-		else if (g7->battery_percent >= 100)
+		else if (percent >= 100)
 			val->intval = POWER_SUPPLY_STATUS_FULL;
 		else
 			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
 		break;
+	}
 	case POWER_SUPPLY_PROP_SCOPE:
 		val->intval = POWER_SUPPLY_SCOPE_DEVICE;
 		break;
@@ -900,13 +906,13 @@ static void g7pro_hb_work(struct work_struct *work)
 	struct usb_xpad *xpad = g7->xpad;
 	int ret;
 
-	if (!g7->started)
+	if (!READ_ONCE(g7->started))
 		return;
 	ret = g7pro_send_heartbeat(xpad);
 	if (ret && ret != -EPIPE && ret != -ESHUTDOWN)
 		dev_warn_ratelimited(&xpad->intf->dev,
 				     "g7pro heartbeat failed: %d\n", ret);
-	if (g7->started)
+	if (READ_ONCE(g7->started))
 		schedule_delayed_work(&g7->hb_work, msecs_to_jiffies(300));
 }
 
@@ -917,19 +923,20 @@ static void g7pro_handle_report(struct usb_xpad *xpad, const u8 *d, int len)
 	struct input_dev *motion;
 	u32 ts;
 
-	if (!g7 || !g7->started)
+	if (!g7 || !READ_ONCE(g7->started))
 		return;
 	if (!g7pro_decode_report(d, len, &s))
 		return;
 
-	if (s.battery != g7->battery_percent || s.charging != g7->charging) {
-		g7->battery_percent = s.battery;
-		g7->charging = s.charging;
-		if (g7->battery)
+	if (s.battery != READ_ONCE(g7->battery_percent) ||
+	    s.charging != READ_ONCE(g7->charging)) {
+		WRITE_ONCE(g7->battery_percent, s.battery);
+		WRITE_ONCE(g7->charging, s.charging);
+		if (READ_ONCE(g7->battery))
 			power_supply_changed(g7->battery);
 	}
 
-	motion = g7->motion;
+	motion = READ_ONCE(g7->motion);
 	if (!motion)
 		return;
 	input_report_abs(motion, ABS_RX, s.gyro_x);
@@ -1037,7 +1044,7 @@ static int g7pro_sensor_start(struct usb_xpad *xpad)
 		return PTR_ERR(g7->battery);
 	}
 
-	g7->started = true;
+	WRITE_ONCE(g7->started, true);
 
 	/* Warm up the vendor session before report 0x10 starts. */
 	for (i = 0; i < 4; i++) {
@@ -1057,7 +1064,8 @@ static void g7pro_sensor_stop(struct usb_xpad *xpad)
 
 	if (!g7)
 		return;
-	g7->started = false;
+	WRITE_ONCE(g7->started, false);
+	xpad->g7pro = NULL;
 	cancel_delayed_work_sync(&g7->hb_work);
 	if (g7->battery)
 		power_supply_unregister(g7->battery);
@@ -1068,7 +1076,6 @@ static void g7pro_sensor_stop(struct usb_xpad *xpad)
 	kfree(g7->hb_buf);
 	kfree(g7->uniq);
 	kfree(g7);
-	xpad->g7pro = NULL;
 }
 
 static int xpad_init_input(struct usb_xpad *xpad);
@@ -1518,7 +1525,8 @@ static void xpad_irq_in(struct urb *urb)
 		goto exit;
 	}
 
-	if (xpad->g7pro && urb->actual_length >= 61 && xpad->idata[0] == 0x10) {
+	if (READ_ONCE(xpad->g7pro) && urb->actual_length >= 61 &&
+	    xpad->idata[0] == 0x10) {
 		g7pro_handle_report(xpad, xpad->idata, urb->actual_length);
 		goto exit;
 	}
@@ -2541,7 +2549,7 @@ static void xpad_disconnect(struct usb_interface *intf)
 		xpad360w_stop_input(xpad);
 
 	if (xpad->g7pro) {
-		xpad->g7pro->started = false;
+		WRITE_ONCE(xpad->g7pro->started, false);
 		cancel_delayed_work_sync(&xpad->g7pro->hb_work);
 	}
 	xpad_deinit_input(xpad);
@@ -2570,7 +2578,7 @@ static void g7pro_suspend(struct usb_xpad *xpad)
 
 	if (!g7)
 		return;
-	g7->started = false;
+	WRITE_ONCE(g7->started, false);
 	cancel_delayed_work_sync(&g7->hb_work);
 }
 
@@ -2580,7 +2588,7 @@ static void g7pro_resume(struct usb_xpad *xpad)
 
 	if (!g7)
 		return;
-	g7->started = true;
+	WRITE_ONCE(g7->started, true);
 	schedule_delayed_work(&g7->hb_work, msecs_to_jiffies(300));
 }
 

@@ -39,7 +39,7 @@ the existing report/FF paths are untouched.
 | FF rumble works, including 5 s effects | proven | `rumble_test` 5000 ms in VM; `TESTING.md` |
 | Hotplug and physical replug recreate both devices | proven | `xpad-hotplug-test.sh`, replug log |
 | No regression on other xpad pads | **gap** | one unit only; request in README |
-| Memory safety of probe/read/FF/teardown | proven (KASAN) | `scripts/kasan-vm/`, clean log |
+| Memory safety of probe/read/FF/teardown | proven for the **prototype** `g7pro.ko`; **xpad.ko run pending** | `scripts/kasan-vm/`, clean log |
 | No data races | **gap** | KCSAN not run |
 | No lock-order problems | **gap** | lockdep not run |
 | Suspend/resume resumes the vendor session | **gap** | only code-reasoned; see §7 |
@@ -270,8 +270,8 @@ by then.  **Gap:** KCSAN has not confirmed this; see §7.
 | `0x109c`/`0x100a` | whitelisted, but only `109b` was tested | test reports from owners of those revisions |
 | multiple pads | battery/input names are per-port, but two identical pads are untested | two-device test |
 | `MSC_TIMESTAMP` wrap | 32-bit µs wraps every ~71 min | matches hid-playstation; note for reviewers |
-| pointer cleared after free | `xpad->g7pro` is set to `NULL` after `kfree(g7)` in `g7pro_sensor_stop()`; safe today only because the IRQ URB is dead, but the ordering is wrong | clear the pointer before freeing, then re-run the VM (pre-submission hardening) |
-| `started` accesses | plain loads/stores shared between URB completion and work/disconnect | `READ_ONCE`/`WRITE_ONCE`, then KCSAN |
+| pointer cleared after free | fixed in code: the pointer is cleared before the state is freed | awaiting the xpad VM run |
+| shared field accesses | `started`, `battery_percent`, `charging`, `motion` and `battery` were plain accesses across URB/work/sysfs contexts | all now `READ_ONCE`/`WRITE_ONCE`; awaiting KCSAN |
 
 ## 8. Questions a hostile reviewer will ask
 

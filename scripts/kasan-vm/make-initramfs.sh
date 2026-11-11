@@ -7,9 +7,12 @@
 #   REPO=~/Projects/g7pro-kernel ./make-initramfs.sh
 set -eu
 
-KERNEL_SRC=${KERNEL_SRC:?set KERNEL_SRC to the KASAN kernel tree}
+KERNEL_SRC=${KERNEL_SRC:?set KERNEL_SRC to the kernel tree}
 REPO=${REPO:-$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)}
 OUT=${OUT:-/tmp/g7pro-kasan}
+# Default to the upstream submission (xpad); MODULE=g7pro tests the
+# standalone prototype instead.
+MODULE=${MODULE:-xpad}
 WORK=$OUT/root
 INITRD=$OUT/initramfs.cpio.gz
 
@@ -22,9 +25,21 @@ for applet in sh mount insmod ls cat sleep echo dmesg poweroff grep cut; do
 	ln -sf busybox "$WORK/bin/$applet"
 done
 
-# Build the module against the KASAN tree.
-make -C "$KERNEL_SRC" LLVM=1 M="$REPO" modules >/dev/null
-cp "$REPO/g7pro.ko" "$WORK/lib/modules/g7pro.ko"
+# Build the module against the target tree.
+case "$MODULE" in
+xpad)
+	make -C "$KERNEL_SRC" LLVM=1 M="$REPO/xpad" modules >/dev/null
+	KO="$REPO/xpad/xpad.ko"
+	;;
+g7pro)
+	make -C "$KERNEL_SRC" LLVM=1 M="$REPO" modules >/dev/null
+	KO="$REPO/g7pro.ko"
+	;;
+*)
+	echo "unknown MODULE=$MODULE"; exit 1
+	;;
+esac
+cp "$KO" "$WORK/lib/modules/$MODULE.ko"
 
 # Static test binaries.
 cc -static -O2 -Wall -Wextra -o "$WORK/tests/evdev_caps" "$REPO/tests/evdev_caps.c"
@@ -37,8 +52,8 @@ export PATH=/bin
 mount -t proc proc /proc
 mount -t sysfs sys /sys
 mount -t devtmpfs dev /dev
-echo "=== init: loading g7pro ==="
-insmod /lib/modules/g7pro.ko || echo "insmod failed"
+echo "=== init: loading module ==="
+insmod /lib/modules/__MODULE__.ko || echo "insmod failed"
 sleep 2
 
 echo "=== input devices ==="
@@ -76,6 +91,7 @@ echo "=== init: done ==="
 sync
 poweroff -f
 EOF
+sed -i "s/__MODULE__/$MODULE/" "$WORK/init"
 chmod +x "$WORK/init"
 
 # cpio without busybox dependency on the host.
