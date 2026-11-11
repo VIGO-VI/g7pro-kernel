@@ -43,6 +43,10 @@ the existing report/FF paths are untouched.
 | No data races | proven with KCSAN strict | `upstream/evidence/kcsan-xpad-7.3.4.log` |
 | No lock-order problems | proven under KASAN+lockdep and KCSAN strict | both evidence logs, zero reports |
 | Suspend/resume | proven on hardware; device re-enumerates on resume, so probe repeats the warm-up | `upstream/evidence/pm-suspend-resume-xpad-7.3.3.log` |
+| Concurrent FF clients | proven — no KCSAN report in driver code | `upstream/evidence/kcsan-xpad-7.3.4.log` |
+| No leaks in probe/FF/teardown | proven — kmemleak clear | `upstream/evidence/leak-kasan-xpad-7.3.4.log` |
+| Probe error paths unwind | proven — 27 injected failures, final load clean | `upstream/evidence/fault-injection-xpad-7.3.4.log` |
+| 64-bit non-x86 build | proven — arm64 object builds warning-free | `EVIDENCE.md` |
 | Trigger motors | **gap** | accepted by device, not perceptible |
 
 ## 3. `g7pro.h` — line by line
@@ -286,7 +290,9 @@ by then.  **Gap:** KCSAN has not confirmed this; see §7.
 | Gap | Why it matters | How to close it |
 |---|---|---|
 | suspend/resume shortcut | the device re-enumerates on resume so `probe()` repeats the warm-up; the non-reset callback path is unverified | force a non-reset resume or add a resume-time heartbeat if reviewers require it |
-| second controller | "no regression on other xpad pads" is unproven | run `xpad-test.sh` on another pad; request in README |
+| second controller | "no regression on other xpad pads" is unproven | run `xpad-test.sh` on another pad; issue #1 |
+| 6.12 stable backport | the series targets mainline and does not apply to the older `xpad.c` | separate manual series only if requested |
+| runtime PM | not implemented; `runtime_status` stays `active` with `control=auto` | documented as unsupported |
 | teardown race | proven under load, with stock-xpad and no-module controls | `upstream/EVIDENCE.md` |
 | short pulse at re-enumeration | a ~0.3-0.5 s pulse occurs when a driver binds after re-enumeration; no driver transfer is involved (no-heartbeat and no-serial control builds still pulse), no pulse without a driver, none on host replug | recorded as residual in `upstream/EVIDENCE.md`; cause not identified, cosmetic |
 | trigger motors | the packet has two trigger channels; no perceptible vibration | either document as unused or find the correct values |
