@@ -42,7 +42,7 @@ the existing report/FF paths are untouched.
 | Memory safety of probe/read/FF/teardown | proven for `xpad.ko` | `upstream/evidence/kasan-lockdep-xpad-7.3.4.log` |
 | No data races | proven with KCSAN strict | `upstream/evidence/kcsan-xpad-7.3.4.log` |
 | No lock-order problems | proven under KASAN+lockdep and KCSAN strict | both evidence logs, zero reports |
-| Suspend/resume resumes the vendor session | **gap** | only code-reasoned; see §7 |
+| Suspend/resume | proven on hardware; device re-enumerates on resume, so probe repeats the warm-up | `upstream/evidence/pm-suspend-resume-xpad-7.3.3.log` |
 | Trigger motors | **gap** | accepted by device, not perceptible |
 
 ## 3. `g7pro.h` — line by line
@@ -284,7 +284,7 @@ by then.  **Gap:** KCSAN has not confirmed this; see §7.
 
 | Gap | Why it matters | How to close it |
 |---|---|---|
-| suspend/resume | the 1 s vendor warmup is **not** repeated on resume; IMU may or may not restart | suspend/resume on real hardware with `sdl3_probe` before/after |
+| suspend/resume shortcut | the device re-enumerates on resume so `probe()` repeats the warm-up; the non-reset callback path is unverified | force a non-reset resume or add a resume-time heartbeat if reviewers require it |
 | second controller | "no regression on other xpad pads" is unproven | run `xpad-test.sh` on another pad; request in README |
 | teardown race | proven under load, with stock-xpad and no-module controls | `upstream/EVIDENCE.md` |
 | short pulse at re-enumeration | a ~0.3-0.5 s pulse occurs when a driver binds after re-enumeration; no driver transfer is involved (no-heartbeat and no-serial control builds still pulse), no pulse without a driver, none on host replug | recorded as residual in `upstream/EVIDENCE.md`; cause not identified, cosmetic |

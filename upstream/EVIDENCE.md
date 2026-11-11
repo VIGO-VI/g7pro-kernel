@@ -16,6 +16,7 @@ Environment: Linux 7.3.4 (`defconfig` + options from
 | `kcsan-xpad-7.3.4.log` | patched `xpad.ko`, **KCSAN strict** + lockdep | zero data-race and zero lockdep reports, with IMU and FF active |
 | `control-none-7.3.4.log` | same kernel, **no module** | the boot-time KASAN report reproduces without any driver: not ours |
 | `control-stock-7.3.4.log` | **stock** in-tree `xpad.ko` | rumble lingers after unbind without the G7 stop path: the fix is real, and the `usb_submit_urb -ENOENT` is pre-existing |
+| `pm-suspend-resume-xpad-7.3.3.log` | patched `xpad.ko` on the host, real S3 (`mem_sleep=deep`), 15 s | both devices and the IMU survive a suspend/resume; rumble and battery work afterwards |
 
 Hashes:
 
@@ -89,8 +90,24 @@ So it correlates with binding a driver to the freshly enumerated interface,
 not with a transfer from that driver.  Cause not identified; cosmetic; recorded
 here rather than claimed as understood.
 
+### Suspend/resume on hardware
+
+Host kernel 7.3.3, patched `xpad.ko` loaded in place of the stock module,
+`rtcwake -m mem -s 15` with `mem_sleep=deep` (real S3).  After resume:
+
+- both input devices were recreated (`input139`, `input138`);
+- the IMU streamed (`n=6–7` per 100 ms, nonzero variance while rumbling);
+- `FF_RUMBLE` and the battery (`100 Full`) worked;
+- no driver errors; the only kernel message is the expected unsigned-module
+  taint.
+
+Caveat recorded deliberately: the controller **re-enumerated** on resume
+(`reset_resume`), so `probe()` ran again and repeated the warm-up.  The
+non-reset suspend→resume callback path is therefore not what was exercised;
+the behaviour users actually get is verified, the shortcut path is not.
+
 ## Not covered
 
-- suspend/resume on physical hardware (the warm-up is not repeated on resume)
+- the non-reset suspend→resume path (see above)
 - a second xpad controller
 - `109c` and `100a` revisions

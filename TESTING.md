@@ -16,6 +16,7 @@ Pinned to commit `33da321bbc521b4b085712a38e54d06121bb1b00`.
 | Long FF (5 s, VM) | GIP `on-period 0xFF` / `repeat 0xFF` | pass — full 5 s grip rumble |
 | KASAN + lockdep (VM, xpad) | `scripts/kasan-vm/` — mainline 7.3.4 + `CONFIG_KASAN` + `CONFIG_PROVE_LOCKING`, real pad via QEMU `usb-host` | pass — clean probe/read/5 s FF/teardown; one pre-module boot report, see evidence log |
 | Teardown under load | unbind the USB device while an effect is playing, then rebind | pass — stop sent on unbind, `REBIND-GAMEPAD-OK`; stock xpad control leaves the motors running |
+| Suspend/resume (hardware) | real S3 via `rtcwake`, patched `xpad.ko` | pass — devices, IMU, rumble and battery after resume; device re-enumerates |
 | KCSAN strict + lockdep (VM) | `scripts/kasan-vm/`, `CONFIG_KCSAN_STRICT=y` | pass — zero reports with IMU and FF active |
 
 ## xpad extension (upstream direction)
