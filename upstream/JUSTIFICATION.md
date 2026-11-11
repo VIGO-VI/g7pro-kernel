@@ -39,9 +39,9 @@ the existing report/FF paths are untouched.
 | FF rumble works, including 5 s effects | proven | `rumble_test` 5000 ms in VM; `TESTING.md` |
 | Hotplug and physical replug recreate both devices | proven | `xpad-hotplug-test.sh`, replug log |
 | No regression on other xpad pads | **gap** | one unit only; request in README |
-| Memory safety of probe/read/FF/teardown | proven for the **prototype** `g7pro.ko`; **xpad.ko run pending** | `scripts/kasan-vm/`, clean log |
-| No data races | **gap** | KCSAN not run |
-| No lock-order problems | **gap** | lockdep not run |
+| Memory safety of probe/read/FF/teardown | proven for `xpad.ko` | `upstream/evidence/kasan-lockdep-xpad-7.3.4.log` |
+| No data races | proven in KCSAN non-strict; strict rerun pending | `upstream/evidence/kcsan-xpad-7.3.4.log` |
+| No lock-order problems | proven | same KASAN+lockdep log, zero lockdep reports |
 | Suspend/resume resumes the vendor session | **gap** | only code-reasoned; see §7 |
 | Trigger motors | **gap** | accepted by device, not perceptible |
 
@@ -265,7 +265,7 @@ by then.  **Gap:** KCSAN has not confirmed this; see §7.
 | lockdep | no lock-order proof | `CONFIG_PROVE_LOCKING`, same harness |
 | suspend/resume | the 1 s vendor warmup is **not** repeated on resume; IMU may or may not restart | suspend/resume on real hardware with `sdl3_probe` before/after |
 | second controller | "no regression on other xpad pads" is unproven | run `xpad-test.sh` on another pad; request in README |
-| teardown race | relies on `xpad_deinit_input()` killing the IRQ URB before the state is freed | KCSAN + a disconnect-under-load test |
+| teardown race | proven under load: device unbound while a 3 s effect was playing, then rebound | `REBIND-GAMEPAD-OK` in the evidence log |
 | trigger motors | the packet has two trigger channels; no perceptible vibration | either document as unused or find the correct values |
 | `0x109c`/`0x100a` | whitelisted, but only `109b` was tested | test reports from owners of those revisions |
 | multiple pads | battery/input names are per-port, but two identical pads are untested | two-device test |

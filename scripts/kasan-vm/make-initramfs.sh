@@ -77,6 +77,7 @@ for ev in /dev/input/event*; do
 	*"GameSir G7 Pro"*)
 		/tests/evdev_caps "$ev"
 		if [ "$name" = "GameSir G7 Pro" ]; then
+			GAME_EV=$ev
 			/tests/rumble_test "$ev" 5000 || echo "rumble_test failed"
 			FOUND=1
 		fi
@@ -84,6 +85,33 @@ for ev in /dev/input/event*; do
 	esac
 done
 [ -n "$FOUND" ] && echo "GAMEPAD-FOUND" || echo "NO-GAMEPAD"
+
+echo "=== teardown under load ==="
+if [ -n "$FOUND" ]; then
+	/tests/rumble_test "$GAME_EV" 3000 &
+	TEST_PID=$!
+	sleep 1
+	UDEV=
+	for d in /sys/bus/usb/devices/*/idVendor; do
+		[ -e "$d" ] || continue
+		[ "$(cat "$d")" = 3537 ] && UDEV=$(dirname "$d")
+	done
+	if [ -n "$UDEV" ]; then
+		NAME=${UDEV##*/}
+		echo "unbinding $NAME during FF"
+		echo "$NAME" > /sys/bus/usb/drivers/usb/unbind
+		sleep 1
+		echo "$NAME" > /sys/bus/usb/drivers/usb/bind
+		sleep 2
+	fi
+	wait "$TEST_PID" 2>/dev/null || true
+	echo "GAMEPAD-FOUND after rebind" >/dev/null
+	for ev in /dev/input/event*; do
+		[ -e "$ev" ] || continue
+		name=$(cat "/sys/class/input/$(basename "$ev")/device/name" 2>/dev/null)
+		[ "$name" = "GameSir G7 Pro" ] && echo "REBIND-GAMEPAD-OK"
+	done
+fi
 
 echo "=== dmesg tail ==="
 dmesg | tail -40
