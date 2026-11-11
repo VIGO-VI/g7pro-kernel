@@ -138,6 +138,24 @@ cc -O2 -Wall -Wextra -o tests/rumble_test tests/rumble_test.c
 invalid frames, and 200k fuzz iterations.  `tests/capture_report.c` captures
 a fresh frame from the controller for a new golden fixture.
 
+## Help wanted: regression testing
+
+The series changes `xpad`, which drives every Xbox-compatible pad on Linux.  I
+only have the GameSir G7 Pro, so the missing evidence is a run on **any other
+xpad controller**.
+
+If you own one, please compare stock `xpad` with the patched module:
+
+```sh
+./scripts/xpad-test.sh          # patched module, log in /tmp/xpad-g7pro-test.log
+sudo modprobe -r xpad && sudo modprobe xpad
+./tests/evdev_caps /dev/input/eventN   # build it first, see Tests
+```
+
+What matters is that the other pad still enumerates with the same axes, key
+codes and FF bits, and that the log shows no new xpad errors.  Report results
+in the repository issues; no email to maintainers is needed.
+
 ## Status
 
 Working proof on wired `3537:109b`:
