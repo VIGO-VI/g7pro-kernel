@@ -292,6 +292,19 @@ consumes only the IMU and battery fields.
 There is none from the vendor.  The protocol is documented by g7ctl and
 reproduced by live captures; offsets are listed in §3.
 
+**"There is a KASAN report in your own log. Explain."**
+It is at `t≈0.0036 s`, in `do_raw_spin_lock` called from `identify_cpu` via
+`handle_edge_irq` — before any module can load.  The `control-none` run boots
+the same kernel with no module and reproduces it.  It is a property of this
+mainline configuration under TCG, not of the driver.  Evidence:
+`upstream/EVIDENCE.md`.
+
+**"And the `usb_submit_urb` failures during teardown?"**
+The test unbinds the device while a 3 s effect is playing.  `-ENOENT` from the
+output path reproduces with **stock** `xpad`, and `-EPERM` is the documented
+result of resubmitting while `usb_kill_urb()` runs (`drivers/usb/core/urb.c`).
+The URB goes idle, the device re-enumerates, KASAN stays silent.
+
 **"Was this written by an AI?"**
 Disclosed in the cover letter: tools, model, inputs, affected portions and
 testing.  The human submitter reviews, signs off and is responsible.
