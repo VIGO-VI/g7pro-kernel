@@ -110,4 +110,4 @@ the behaviour users actually get is verified, the shortcut path is not.
 
 - the non-reset suspend→resume path (see above)
 - a second xpad controller
-- `109c` and `100a` revisions
+- `109c` (dongle) and `100a`, which are not claimed

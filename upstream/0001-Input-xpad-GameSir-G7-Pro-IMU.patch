@@ -3,7 +3,7 @@ From: Vigo <77800979+VIGO-VI@users.noreply.github.com>
 Date: Tue, 10 Nov 2026 15:24:37 -0600
 Subject: [PATCH] Input: xpad - add GameSir G7 Pro IMU and battery support
 
-The wired GameSir G7 Pro (3537:109b/100a) exposes the gamepad through
+The wired GameSir G7 Pro (3537:109b) exposes the gamepad through
 the normal Xbox report and a raw 6-axis IMU plus battery through vendor
 report 0x10.  The vendor session needs a heartbeat on interrupt endpoint
 0x02.
@@ -212,7 +212,7 @@ index d2eb48d..63eb22a 100644
 +
 +	if (vid != 0x3537)
 +		return false;
-+	return pid == 0x109b || pid == 0x109c || pid == 0x100a;
++	return pid == 0x109b;
 +}
 +
 +static int g7pro_battery_get_property(struct power_supply *psy,

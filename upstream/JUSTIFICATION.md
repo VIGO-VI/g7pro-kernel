@@ -118,9 +118,10 @@ Fields and ownership:
 
 ### 4.4 `g7pro_is_device()`
 
-Exact whitelist: VID `0x3537`, PID `0x109b`, `0x109c`, `0x100a`.  No vendor-wide
-match, so no unrelated GameSir device changes behaviour.  `0x1022` (Bluetooth)
-is deliberately excluded: that identity has no vendor interface.  **Reasoned**;
+Exact whitelist: VID `0x3537`, PID `0x109b` only.  No vendor-wide match, so no
+unrelated GameSir device changes behaviour.  `0x109c` (2.4 GHz dongle), `0x100a`
+and `0x1022` (HID/native mode, wired or Bluetooth) are deliberately excluded:
+they are untested and, for 1022, have no vendor interface.  **Reasoned**;
 the PIDs come from hardware enumeration logs in `TESTING.md`.
 
 ### 4.5 Battery property callback
@@ -289,7 +290,7 @@ by then.  **Gap:** KCSAN has not confirmed this; see §7.
 | teardown race | proven under load, with stock-xpad and no-module controls | `upstream/EVIDENCE.md` |
 | short pulse at re-enumeration | a ~0.3-0.5 s pulse occurs when a driver binds after re-enumeration; no driver transfer is involved (no-heartbeat and no-serial control builds still pulse), no pulse without a driver, none on host replug | recorded as residual in `upstream/EVIDENCE.md`; cause not identified, cosmetic |
 | trigger motors | the packet has two trigger channels; no perceptible vibration | either document as unused or find the correct values |
-| `0x109c`/`0x100a` | whitelisted, but only `109b` was tested | test reports from owners of those revisions |
+| `0x109c`/`0x100a` | not claimed at all; narrowed to the tested `109b` | add with evidence when an owner tests |
 | multiple pads | battery/input names are per-port, but two identical pads are untested | two-device test |
 | `MSC_TIMESTAMP` wrap | 32-bit µs wraps every ~71 min | matches hid-playstation; note for reviewers |
 | pointer cleared after free | fixed in code: the pointer is cleared before the state is freed | awaiting the xpad VM run |

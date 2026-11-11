@@ -4,7 +4,7 @@
 > is a draft for review; it has no `Signed-off-by`, and no mail has been sent
 > to any maintainer or list.  See `upstream/README.md` for the remaining work.
 
-Wired `3537:109b` / `3537:109c`.  Exposes the controller's real 6-axis IMU as
+Wired `3537:109b`.  Exposes the controller's real 6-axis IMU as
 a sibling **Motion Sensors** input device so SDL3, Eden and ScarletNX get
 `SDL_SENSOR_GYRO` / `SDL_SENSOR_ACCEL` out of the box — no userspace daemon.
 

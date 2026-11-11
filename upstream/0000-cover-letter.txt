@@ -19,7 +19,7 @@ The patch:
 
 - sends the vendor heartbeat (0f 00 seq 02 f2) on interrupt endpoint
   0x02 from a delayed work,
-- parses report 0x10 only for 3537:109b/100a,
+- parses report 0x10 only for 3537:109b,
 - registers a second input device, "... Motion Sensors", following
   hid-playstation: INPUT_PROP_ACCELEROMETER, ABS_X/Y/Z (accel),
   ABS_RX/RY/RZ (gyro), MSC_TIMESTAMP, resolution 8192/g and
@@ -43,9 +43,9 @@ Tested on a wired 3537:109b (bcdDevice 0x0240), SDL3 3.4.18:
 Known issues / review requests:
 
 - This touches a widely used driver.  All new paths are behind
-  `g7pro_is_device()` (VID 3537, PID 109b/109c/100a); the existing
-  report and FF paths are not changed.  I would appreciate guidance on
-  whether the PID list should be narrower.
+  `g7pro_is_device()` (VID 3537, PID 109b); the existing
+  report and FF paths are not changed.  The 2.4 GHz dongle (109c) and the
+  alternate 100a identity are untested and deliberately not claimed.
 - The vendor packet has separate LT/RT motor percentages.  Generic
   FF_RUMBLE only carries strong/weak, so the existing xpad FF path
   drives the grips; trigger channels are left at zero.

@@ -68,7 +68,7 @@ This is the policy-consistent route:
 Risks and required care:
 
 - `xpad` is used by many controllers; every change must be gated on
-  `VID/PID == 3537:109b` (and possibly `100a`) and must not alter the
+  `VID/PID == 3537:109b` and must not alter the
   existing report paths for other models;
 - the vendor report `0x10` is 64 bytes and arrives on the same interrupt IN
   endpoint; `xpad` already allocates a 64-byte buffer, so the parser can be

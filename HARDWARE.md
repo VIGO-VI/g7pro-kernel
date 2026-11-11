@@ -38,9 +38,27 @@ separate HID driver and hardware capture; it is not assumed here.
 
 ## Four-motor note
 
-The GIP packet is `09 00 seq 09 00 0f LT% RT% left% right% duration 00 00`.
-The current `FF_RUMBLE` mapping uses the two grip channels and leaves LT/RT at
-zero, matching `xpad`'s GIP rumble path. The protocol supports the trigger
+The GIP packet is `09 00 seq 09 00 0f LT% RT% left% right% on-period off-period repeat`.
+The driver sends on-period 32 with repeat 0 and refreshes it every 150 ms while
+an effect is active, so the motors stop on their own if the host disappears
+(measured: ~850 ms tail).  The `FF_RUMBLE` mapping uses the two grip channels
+and leaves LT/RT at zero, matching `xpad`'s GIP rumble path. The protocol supports the trigger
 motors; exposing them separately needs either a vendor-specific attribute or a
 non-standard FF effect, which should be discussed with linux-input before
 adding.
+
+## Native/HID identity (`3537:1022`), wired
+
+Share+Menu switches the wired pad from `109b` to `1022`.  Tested on
+2026-11-11:
+
+- two HID interfaces, both class `03`, endpoints `0x02/0x82` and `0x04/0x84`;
+  **no vendor interface**;
+- the USB HID descriptor is a legacy gamepad with no report IDs, so it is not
+  even the same personality as Bluetooth `1022`;
+- the Bluetooth rumble report (`03 0F LT RT LM RM`) was written to the USB
+  hidraw node and produced **no vibration**;
+- no IMU, no battery.
+
+`1022` is therefore input-only on both transports, and the Bluetooth rumble
+path is specific to that transport.  It is excluded from this driver.

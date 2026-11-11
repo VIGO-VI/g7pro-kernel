@@ -827,7 +827,7 @@ static bool g7pro_is_device(struct usb_device *udev)
 
 	if (vid != 0x3537)
 		return false;
-	return pid == 0x109b || pid == 0x109c || pid == 0x100a;
+	return pid == 0x109b;
 }
 
 static int g7pro_battery_get_property(struct power_supply *psy,
