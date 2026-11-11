@@ -915,8 +915,6 @@ static void g7pro_send_rumble(struct usb_xpad *xpad, u8 strong, u8 weak,
 {
 	u8 *pkt = xpad->g7pro->ff_buf;
 	int actual = 0;
-	int ret;
-
 	if (!pkt)
 		return;
 	memset(pkt, 0, G7PRO_REPORT_LEN);
@@ -927,15 +925,17 @@ static void g7pro_send_rumble(struct usb_xpad *xpad, u8 strong, u8 weak,
 	pkt[5] = 0x0f;
 	pkt[8] = strong;
 	pkt[9] = weak;
-	pkt[10] = active ? 0xff : 0x00;	/* on period */
+	/*
+	 * On-period 32 is ~320 ms on this firmware (measured 850 ms until the
+	 * vibration decays), so a 150 ms refresh keeps it continuous while a
+	 * vanished host stops it in under a second.
+	 */
+	pkt[10] = active ? 32 : 0x00;	/* on period */
 	pkt[11] = 0x00;			/* off period */
 	pkt[12] = 0x00;			/* repeat count */
 
-	ret = usb_interrupt_msg(xpad->udev, usb_sndintpipe(xpad->udev, 0x02),
-				pkt, G7PRO_REPORT_LEN, &actual, 1000);
-	dev_info_ratelimited(&xpad->intf->dev,
-			     "g7pro rumble s=%u w=%u on=%d ret=%d len=%d\n",
-			     strong, weak, active, ret, actual);
+	usb_interrupt_msg(xpad->udev, usb_sndintpipe(xpad->udev, 0x02),
+			  pkt, G7PRO_REPORT_LEN, &actual, 1000);
 }
 
 static void g7pro_ff_work(struct work_struct *work)
@@ -949,7 +949,7 @@ static void g7pro_ff_work(struct work_struct *work)
 	g7pro_send_rumble(xpad, READ_ONCE(g7->ff_strong),
 			  READ_ONCE(g7->ff_weak), READ_ONCE(g7->ff_active));
 	if (READ_ONCE(g7->ff_active))
-		schedule_delayed_work(&g7->ff_work, msecs_to_jiffies(200));
+		schedule_delayed_work(&g7->ff_work, msecs_to_jiffies(150));
 }
 
 static int g7pro_play_effect(struct usb_xpad *xpad, struct ff_effect *effect)
@@ -969,7 +969,7 @@ static int g7pro_play_effect(struct usb_xpad *xpad, struct ff_effect *effect)
 
 	/* Always go through the workqueue: this context holds event_lock and
 	 * must not sleep. */
-	mod_delayed_work(system_wq, &g7->ff_work, 0);
+	mod_delayed_work(system_dfl_wq, &g7->ff_work, 0);
 	return 0;
 }
 

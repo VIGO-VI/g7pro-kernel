@@ -53,6 +53,7 @@ esac
 cc -static -O2 -Wall -Wextra -o "$WORK/tests/evdev_caps" "$REPO/tests/evdev_caps.c"
 cc -static -O2 -Wall -Wextra -o "$WORK/tests/rumble_test" "$REPO/tests/rumble_test.c"
 cc -static -O2 -Wall -Wextra -I"$REPO" -o "$WORK/tests/parser_test" "$REPO/tests/parser_test.c"
+cc -static -O2 -Wall -Wextra -o "$WORK/tests/accel_watch" "$REPO/tests/accel_watch.c" -lm
 
 cat > "$WORK/init" <<'EOF'
 #!/bin/sh
@@ -63,6 +64,7 @@ mount -t devtmpfs dev /dev
 echo "=== init: loading module ==="
 insmod /lib/modules/__MODULE__.ko || echo "insmod failed"
 sleep 2
+
 
 echo "=== input devices ==="
 cat /proc/bus/input/devices
@@ -85,11 +87,31 @@ for ev in /dev/input/event*; do
 	# Only the gamepad advertises force feedback; the motion node does not.
 	case "$(cat "$base/name" 2>/dev/null)" in *"Motion Sensors"*) continue ;; esac
 	/tests/evdev_caps "$ev"
+	/tests/accel_watch "$ev" 300
 	[ -n "${GAME_EV:-}" ] || GAME_EV=$ev
 	/tests/rumble_test "$ev" 5000 || echo "rumble_test failed"
 	FOUND=1
 done
 [ -n "$FOUND" ] && echo "GAMEPAD-FOUND" || echo "NO-GAMEPAD"
+
+# Prove the IMU stream is alive.  xpad only submits its input URB while the
+# gamepad is open, so hold it open with a background effect.
+for ev in /dev/input/event*; do
+	[ -e "$ev" ] || continue
+	case "$(cat "/sys/class/input/$(basename "$ev")/device/name" 2>/dev/null)" in
+	*"Motion Sensors"*)
+		MOTION_EV=$ev
+		;;
+	esac
+done
+if [ -n "${MOTION_EV:-}" ] && [ -n "${GAME_EV:-}" ]; then
+	/tests/rumble_test "$GAME_EV" 2000 &
+	HOLD_PID=$!
+	sleep 1
+	echo "IMU check (gamepad held open)"
+	/tests/accel_watch "$MOTION_EV" 1200
+	wait "$HOLD_PID" 2>/dev/null || true
+fi
 
 echo "=== teardown under load ==="
 if [ -n "$FOUND" ]; then
@@ -126,6 +148,33 @@ echo "=== init: done ==="
 sync
 poweroff -f
 EOF
+
+if [ "${REBIND_ONLY:-0}" = 1 ]; then
+	cat > "$WORK/init" <<'EOF'
+#!/bin/sh
+export PATH=/bin
+mount -t proc proc /proc
+mount -t sysfs sys /sys
+mount -t devtmpfs dev /dev
+sleep 2
+echo "rebind-only: no driver loaded"
+for d in /sys/bus/usb/devices/*/idVendor; do
+	[ -e "$d" ] || continue
+	[ "$(cat "$d")" = 3537 ] || continue
+	NAME=$(basename "$(dirname "$d")")
+	echo "rebind-only: unbind $NAME"
+	echo "$NAME" > /sys/bus/usb/drivers/usb/unbind
+	sleep 2
+	echo "rebind-only: bind $NAME"
+	echo "$NAME" > /sys/bus/usb/drivers/usb/bind
+	sleep 2
+done
+echo "rebind-only: done"
+dmesg | tail -20
+sync
+poweroff -f
+EOF
+fi
 if [ "$MODULE" = none ]; then
 	sed -i "s|insmod /lib/modules/__MODULE__.ko .*|echo \"control run: no module loaded\"|" "$WORK/init"
 else

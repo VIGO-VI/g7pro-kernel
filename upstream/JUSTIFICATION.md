@@ -40,8 +40,8 @@ the existing report/FF paths are untouched.
 | Hotplug and physical replug recreate both devices | proven | `xpad-hotplug-test.sh`, replug log |
 | No regression on other xpad pads | **gap** | one unit only; request in README |
 | Memory safety of probe/read/FF/teardown | proven for `xpad.ko` | `upstream/evidence/kasan-lockdep-xpad-7.3.4.log` |
-| No data races | proven in KCSAN non-strict; strict rerun pending | `upstream/evidence/kcsan-xpad-7.3.4.log` |
-| No lock-order problems | proven | same KASAN+lockdep log, zero lockdep reports |
+| No data races | proven with KCSAN strict | `upstream/evidence/kcsan-xpad-7.3.4.log` |
+| No lock-order problems | proven under KASAN+lockdep and KCSAN strict | both evidence logs, zero reports |
 | Suspend/resume resumes the vendor session | **gap** | only code-reasoned; see §7 |
 | Trigger motors | **gap** | accepted by device, not perceptible |
 
@@ -231,6 +231,29 @@ so other pads never take this branch.  **Reasoned.**
   `g7pro_resume()` runs for our device.  For every other device the control
   flow is equivalent: same calls, same return value.  **Reasoned.**
 
+### 4.11 Force feedback (device-specific path)
+
+`xpad_play_effect()` routes the whitelisted device to `g7pro_play_effect()`
+and leaves every other pad on the existing code path.
+
+- The vendor packet runs for a **bounded** on-period.  Measured with the
+  controller's accelerometer: on-period 32 ≈ 320 ms of drive, decaying within
+  850 ms; 255 ≈ 3.1 s.
+- A long effect is kept alive by `g7pro_ff_work()` refreshing every 150 ms.
+  This is what makes an unplug bounded: when the host disappears, the last
+  packet expires instead of driving forever.  The stock driver's
+  "run until a zeroed packet" behaviour was reproduced in the control run and
+  does exactly the opposite.
+- Sends happen **only in the workqueue**.  `xpad_play_effect()` runs under
+  `dev->event_lock`; calling `usb_interrupt_msg()` there produced a real
+  lockdep inversion against URB completion (`event_lock -> usb` vs
+  `usb -> event_lock`), caught by lockdep in an earlier run.
+- The transfer buffer is `kmalloc`ed.  A stack buffer fails DMA mapping with
+  `-EAGAIN` plus an HCD warning; that is also recorded in the history of this
+  branch.
+- Teardown and suspend cancel the refresh and send one zeroed packet while the
+  interface is still reachable.
+
 ## 5. Concurrency and lifetime
 
 | Context | Touches | Serialised by |
@@ -261,11 +284,10 @@ by then.  **Gap:** KCSAN has not confirmed this; see §7.
 
 | Gap | Why it matters | How to close it |
 |---|---|---|
-| KCSAN | `started` and pointer reads are unsynchronised by design | boot the VM with `CONFIG_KCSAN` and repeat read/hotplug |
-| lockdep | no lock-order proof | `CONFIG_PROVE_LOCKING`, same harness |
 | suspend/resume | the 1 s vendor warmup is **not** repeated on resume; IMU may or may not restart | suspend/resume on real hardware with `sdl3_probe` before/after |
 | second controller | "no regression on other xpad pads" is unproven | run `xpad-test.sh` on another pad; request in README |
 | teardown race | proven under load, with stock-xpad and no-module controls | `upstream/EVIDENCE.md` |
+| short pulse at re-enumeration | a ~0.3-0.5 s pulse occurs when a driver binds after re-enumeration; no driver transfer is involved (no-heartbeat and no-serial control builds still pulse), no pulse without a driver, none on host replug | recorded as residual in `upstream/EVIDENCE.md`; cause not identified, cosmetic |
 | trigger motors | the packet has two trigger channels; no perceptible vibration | either document as unused or find the correct values |
 | `0x109c`/`0x100a` | whitelisted, but only `109b` was tested | test reports from owners of those revisions |
 | multiple pads | battery/input names are per-port, but two identical pads are untested | two-device test |

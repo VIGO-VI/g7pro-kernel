@@ -15,8 +15,8 @@ Pinned to commit `33da321bbc521b4b085712a38e54d06121bb1b00`.
 | smatch | not packaged on CachyOS; scan-build could not be driven with the kernel LLVM flags | not run; sparse/checkpatch/KFENCE used |
 | Long FF (5 s, VM) | GIP `on-period 0xFF` / `repeat 0xFF` | pass — full 5 s grip rumble |
 | KASAN + lockdep (VM, xpad) | `scripts/kasan-vm/` — mainline 7.3.4 + `CONFIG_KASAN` + `CONFIG_PROVE_LOCKING`, real pad via QEMU `usb-host` | pass — clean probe/read/5 s FF/teardown; one pre-module boot report, see evidence log |
-| Teardown under load | unbind the USB device while a 3 s effect is playing, then rebind | pass — `rumble_test: OK`, `REBIND-GAMEPAD-OK` |
-| KCSAN/lockdep | host lacks `CONFIG_KCSAN`, `CONFIG_PROVE_LOCKING` | not run yet |
+| Teardown under load | unbind the USB device while an effect is playing, then rebind | pass — stop sent on unbind, `REBIND-GAMEPAD-OK`; stock xpad control leaves the motors running |
+| KCSAN strict + lockdep (VM) | `scripts/kasan-vm/`, `CONFIG_KCSAN_STRICT=y` | pass — zero reports with IMU and FF active |
 
 ## xpad extension (upstream direction)
 
