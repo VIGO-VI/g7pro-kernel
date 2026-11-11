@@ -173,6 +173,46 @@ sync
 poweroff -f
 EOF
 
+if [ "${FAILNTH:-0}" = 1 ]; then
+	cat > "$WORK/init" <<'EOF'
+#!/bin/sh
+export PATH=/bin
+mount -t proc proc /proc
+mount -t sysfs sys /sys
+mount -t devtmpfs dev /dev
+mkdir -p /sys/kernel/debug
+mount -t debugfs debugfs /sys/kernel/debug 2>/dev/null
+F=/sys/kernel/debug/failslab
+echo 0 > "$F/probability"
+echo 1 > "$F/interval"
+echo 0 > "$F/task-filter"
+echo 0 > "$F/ignore-gfp-wait"
+fails=0
+ok=0
+n=1
+while [ $n -le 80 ]; do
+	if sh -c "echo $n > /proc/self/fail-nth; exec insmod /lib/modules/__MODULE__.ko" 2>/dev/null; then
+		ok=$((ok + 1))
+		rmmod xpad 2>/dev/null
+	else
+		fails=$((fails + 1))
+		echo "fail-nth hit: n=$n"
+	fi
+	n=$((n + 1))
+done
+echo "FAILNTH-DONE fails=$fails loads=$ok"
+insmod /lib/modules/__MODULE__.ko || echo "final insmod failed"
+sleep 2
+for ev in /dev/input/event*; do
+	[ -e "$ev" ] || continue
+	name=$(cat "/sys/class/input/$(basename "$ev")/device/name" 2>/dev/null)
+	[ "$name" = "GameSir G7 Pro" ] && echo "FINAL-GAMEPAD-OK"
+done
+sync
+poweroff -f
+EOF
+fi
+
 if [ "${LEAK:-0}" = 1 ]; then
 	cat > "$WORK/init" <<'EOF'
 #!/bin/sh

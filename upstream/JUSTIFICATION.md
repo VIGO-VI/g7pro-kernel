@@ -45,8 +45,8 @@ the existing report/FF paths are untouched.
 | Suspend/resume | proven on hardware; device re-enumerates on resume, so probe repeats the warm-up | `upstream/evidence/pm-suspend-resume-xpad-7.3.3.log` |
 | Concurrent FF clients | proven — no KCSAN report in driver code | `upstream/evidence/kcsan-xpad-7.3.4.log` |
 | No leaks in probe/FF/teardown | proven — kmemleak clear | `upstream/evidence/leak-kasan-xpad-7.3.4.log` |
-| Probe error paths unwind | proven — 27 injected failures, final load clean | `upstream/evidence/fault-injection-xpad-7.3.4.log` |
-| 64-bit non-x86 build | proven — arm64 object builds warning-free | `EVIDENCE.md` |
+| Probe error paths unwind | proven — 27 random + 18 deterministic failure points, final load clean | `fault-injection…` and `failnth-sweep…` logs |
+| Non-x86 and 32-bit builds | proven — arm64 and i386 objects build warning-free | `EVIDENCE.md` |
 | Trigger motors | **gap** | accepted by device, not perceptible |
 
 ## 3. `g7pro.h` — line by line

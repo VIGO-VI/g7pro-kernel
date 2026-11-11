@@ -20,6 +20,8 @@ Pinned to commit `33da321bbc521b4b085712a38e54d06121bb1b00`.
 | Concurrent FF clients | three processes upload/play effects, then teardown | pass — no failure, no KCSAN in driver code |
 | kmemleak | KASAN + kmemleak, 3 FF/IMU rounds, unload, scans | pass — `KMEMLEAK-CLEAR` |
 | Fault injection | KASAN + failslab, 30 insmod/rmmod at 2 % | pass — `ok=3 fail=27`, final load OK, no KASAN |
+| fail-nth sweep | deterministic n=1..80, one allocation each | pass — 18 failure points, final load OK, no KASAN |
+| i386 build | `ARCH=i386` + module | pass — clean 32-bit object |
 | arm64 build | `ARCH=arm64 LLVM=1 modules_prepare` + module | pass — clean `aarch64` object |
 | Runtime PM | `power/control=auto` | not implemented — `runtime_status` stays `active` |
 | 6.12 LTS | patch application | not applicable — baseline API drift; backport out of scope |

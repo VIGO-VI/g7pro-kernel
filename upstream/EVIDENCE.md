@@ -14,6 +14,7 @@ and MAC/IP strings.  Environment: Linux 7.3.4 (`defconfig` + options from
 | `kcsan-xpad-7.3.4.log` | KCSAN strict + lockdep | no report in any driver path |
 | `leak-kasan-xpad-7.3.4.log` | KASAN + kmemleak, 3 FF/IMU rounds, unload, scans | `KMEMLEAK-CLEAR` |
 | `fault-injection-xpad-7.3.4.log` | KASAN + failslab, 30 insmod/rmmod cycles at 2 % | `ok=3 fail=27`, final load OK, no KASAN |
+| `failnth-sweep-xpad-7.3.4.log` | deterministic `fail-nth` sweep, n=1..80 | 18 failure points, 62 clean loads, final load OK, no KASAN |
 | `pm-suspend-resume-xpad-7.3.3.log` | patched `xpad.ko` on the host, S3, 15 s | devices, IMU, rumble, battery after resume |
 | `control-none-7.3.4.log` | same kernel, **no module** | boot-time KASAN report reproduces: not ours |
 | `control-stock-7.3.4.log` | **stock** `xpad.ko` | rumble lingers after unbind: the stop fix is real |
@@ -84,11 +85,17 @@ Three FF/IMU rounds, module unload, two kmemleak scans: `KMEMLEAK-CLEAR`, no
 
 ### Fault injection
 
-`failslab` with `ignore-gfp-wait=0` (otherwise every `GFP_KERNEL` allocation is
-skipped) and `task-filter=1` so only the `insmod` child is injected.  30 cycles
-at 2 %: `ok=3 fail=27`, then a clean final load and `FINAL-GAMEPAD-OK`, no KASAN
-during any failed probe.  Failures inside the module loader itself are expected
-and visible as `vmalloc`/`vm_struct` errors.
+Two complementary runs.
+
+Random: `failslab` with `ignore-gfp-wait=0` (otherwise every `GFP_KERNEL`
+allocation is skipped) and `task-filter=1` so only the `insmod` child is
+injected.  30 cycles at 2 %: `ok=3 fail=27`, clean final load, no KASAN.
+
+Deterministic: `/proc/self/fail-nth` forces exactly the Nth allocation to fail,
+swept over n=1..80.  Eighteen positions aborted the load (3, 5, 7, 25, 27, 38,
+39, 41, 45, 50, 54, 56, 61, 63, 65, 70, 78, 80); 62 loads succeeded; the final
+load was clean and KASAN recorded nothing.  That covers the loader and probe
+allocation sites individually rather than by sampling.
 
 ### Runtime PM
 
@@ -99,8 +106,10 @@ failure.
 ### Build coverage
 
 - x86_64 7.3.4: builds, boots, all tests above.
-- arm64 7.3.4 cross-build (`ARCH=arm64 LLVM=1`, `modules_prepare`): produces a
-  clean `aarch64` relocatable `xpad.ko` with no compiler warnings.
+- arm64 7.3.4 cross-build (`ARCH=arm64 LLVM=1`, `modules_prepare`): clean
+  `aarch64` relocatable `xpad.ko`, no compiler warnings.
+- i386 7.3.4 build (`ARCH=i386`): clean 32-bit relocatable `xpad.ko`, no
+  compiler warnings.
 - 6.12 LTS: the series does not apply (baseline `xpad.c` uses newer symbols
   such as `BTN_GRIPR`, and hunk contexts differ).  A stable backport would be a
   separate, manual series; it is out of scope for the mainline submission.
