@@ -16,6 +16,7 @@ and MAC/IP strings.  Environment: Linux 7.3.4 (`defconfig` + options from
 | `fault-injection-xpad-7.3.4.log` | KASAN + failslab, 30 insmod/rmmod cycles at 2 % | `ok=3 fail=27`, final load OK, no KASAN |
 | `failnth-sweep-xpad-7.3.4.log` | deterministic `fail-nth` sweep, n=1..80 | 18 failure points, 62 clean loads, final load OK, no KASAN |
 | `pm-suspend-resume-xpad-7.3.3.log` | patched `xpad.ko` on the host, S3, 15 s | devices, IMU, rumble, battery after resume |
+| `fake-pad-regression-7.3.3.log` | emulated non-GameSir pad (`045e:028e`) on dummy_hcd, stock vs patched | `RESULT: IDENTICAL` — same capabilities |
 | `control-none-7.3.4.log` | same kernel, **no module** | boot-time KASAN report reproduces: not ours |
 | `control-stock-7.3.4.log` | **stock** `xpad.ko` | rumble lingers after unbind: the stop fix is real |
 
@@ -113,6 +114,22 @@ failure.
 - 6.12 LTS: the series does not apply (baseline `xpad.c` uses newer symbols
   such as `BTN_GRIPR`, and hunk contexts differ).  A stable backport would be a
   separate, manual series; it is out of scope for the mainline submission.
+
+### Synthetic non-GameSir regression
+
+`dummy_hcd` + `raw_gadget` emulate a Microsoft Xbox 360 pad (`045e:028e`,
+vendor interface class `0xff`, subclass 93, protocol 1, interrupt IN and OUT
+endpoints).  Stock and patched `xpad` were loaded in turn against that device:
+
+```text
+interface 5-1:1.0 driver=xpad
+captured 1 input node(s) ...
+RESULT: IDENTICAL — patched xpad presents the same capabilities
+```
+
+This proves the shared driver path produces the same input device for a
+non-G7 device.  It is supplementary: it cannot reproduce real-hardware quirks,
+so issue #1 still asks for one physical pad.
 
 ### Suspend/resume on hardware
 

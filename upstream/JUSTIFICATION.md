@@ -38,7 +38,7 @@ the existing report/FF paths are untouched.
 | Battery `capacity`/`status` correct | proven | `power_supply` 100/Full |
 | FF rumble works, including 5 s effects | proven | `rumble_test` 5000 ms in VM; `TESTING.md` |
 | Hotplug and physical replug recreate both devices | proven | `xpad-hotplug-test.sh`, replug log |
-| No regression on other xpad pads | **gap** | one unit only; request in README |
+| No regression on other xpad pads | proven at the driver level with an emulated `045e:028e`; a physical report is still requested | `upstream/evidence/fake-pad-regression-7.3.3.log` |
 | Memory safety of probe/read/FF/teardown | proven for `xpad.ko` | `upstream/evidence/kasan-lockdep-xpad-7.3.4.log` |
 | No data races | proven with KCSAN strict | `upstream/evidence/kcsan-xpad-7.3.4.log` |
 | No lock-order problems | proven under KASAN+lockdep and KCSAN strict | both evidence logs, zero reports |

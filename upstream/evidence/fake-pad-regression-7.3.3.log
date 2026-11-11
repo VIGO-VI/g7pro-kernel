@@ -1,0 +1,2017 @@
+++ id -u
++ '[' 0 '!=' 0 ']'
++ trap cleanup EXIT
++ pkill -f /tmp/fake_xpad
++ true
++ rmmod dummy_hcd
++ true
++ rmmod raw_gadget
++ true
++ modprobe dummy_hcd
++ modprobe raw_gadget
++ cc -O2 -Wall -Wextra -o /tmp/fake_xpad /home/greenstar/Projects/g7pro-kernel/tests/fake_xpad.c
++ cc -O2 -Wall -Wextra -o /tmp/evdev_caps_report /home/greenstar/Projects/g7pro-kernel/tests/evdev_caps.c
++ MAKE_ARGS=
++ grep -qi clang /proc/version
++ MAKE_ARGS=LLVM=1
++ make LLVM=1 -C /lib/modules/7.3.3-1-cachyos/build M=/home/greenstar/Projects/g7pro-kernel/xpad modules
+make: Entering directory '/usr/lib/modules/7.3.3-1-cachyos/build'
+make[1]: Entering directory '/home/greenstar/Projects/g7pro-kernel/xpad'
+make[1]: Leaving directory '/home/greenstar/Projects/g7pro-kernel/xpad'
+make: Leaving directory '/usr/lib/modules/7.3.3-1-cachyos/build'
++ rmmod xpad
++ run_case /tmp/fake-pad-regression.log.stock modprobe xpad
++ tag=/tmp/fake-pad-regression.log.stock
++ shift
++ modprobe xpad
++ FAKE_PID=136257
++ /tmp/fake_xpad
++ wait_for_fake
++ i=0
++ '[' 0 -lt 50 ']'
+sizes: device=18 config=9 interface=9 ep=7 blob=32
+fake xpad 045e:028e running
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-1/idVendor
++ '[' 0c45 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.1/idVendor
++ '[' 3443 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.3/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.3/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.4/idVendor
++ '[' 043e = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-4/idVendor
++ '[' 3537 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-5/idVendor ']'
+++ cat /sys/bus/usb/devices/1-5/idVendor
++ '[' 8087 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-6/idVendor ']'
+++ cat /sys/bus/usb/devices/1-6/idVendor
++ '[' 0b05 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-7/idVendor ']'
+++ cat /sys/bus/usb/devices/1-7/idVendor
++ '[' 2022 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-3/idVendor ']'
+++ cat /sys/bus/usb/devices/3-3/idVendor
++ '[' 0951 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-4/idVendor ']'
+++ cat /sys/bus/usb/devices/3-4/idVendor
++ '[' 0764 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb1/idVendor ']'
+++ cat /sys/bus/usb/devices/usb1/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb2/idVendor ']'
+++ cat /sys/bus/usb/devices/usb2/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb3/idVendor ']'
+++ cat /sys/bus/usb/devices/usb3/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb4/idVendor ']'
+++ cat /sys/bus/usb/devices/usb4/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb5/idVendor ']'
+++ cat /sys/bus/usb/devices/usb5/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ i=1
++ sleep 0.1
++ '[' 1 -lt 50 ']'
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-1/idVendor
++ '[' 0c45 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.1/idVendor
++ '[' 3443 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.3/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.3/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.4/idVendor
++ '[' 043e = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-4/idVendor
++ '[' 3537 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-5/idVendor ']'
+++ cat /sys/bus/usb/devices/1-5/idVendor
++ '[' 8087 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-6/idVendor ']'
+++ cat /sys/bus/usb/devices/1-6/idVendor
++ '[' 0b05 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-7/idVendor ']'
+++ cat /sys/bus/usb/devices/1-7/idVendor
++ '[' 2022 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-3/idVendor ']'
+++ cat /sys/bus/usb/devices/3-3/idVendor
++ '[' 0951 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-4/idVendor ']'
+++ cat /sys/bus/usb/devices/3-4/idVendor
++ '[' 0764 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb1/idVendor ']'
+++ cat /sys/bus/usb/devices/usb1/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb2/idVendor ']'
+++ cat /sys/bus/usb/devices/usb2/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb3/idVendor ']'
+++ cat /sys/bus/usb/devices/usb3/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb4/idVendor ']'
+++ cat /sys/bus/usb/devices/usb4/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb5/idVendor ']'
+++ cat /sys/bus/usb/devices/usb5/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ i=2
++ sleep 0.1
+ctrl 80 06 value=0100 index=0000 len=64
++ '[' 2 -lt 50 ']'
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-1/idVendor
++ '[' 0c45 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.1/idVendor
++ '[' 3443 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.3/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.3/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.4/idVendor
++ '[' 043e = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-4/idVendor
++ '[' 3537 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-5/idVendor ']'
+++ cat /sys/bus/usb/devices/1-5/idVendor
++ '[' 8087 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-6/idVendor ']'
+++ cat /sys/bus/usb/devices/1-6/idVendor
++ '[' 0b05 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-7/idVendor ']'
+++ cat /sys/bus/usb/devices/1-7/idVendor
++ '[' 2022 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-3/idVendor ']'
+++ cat /sys/bus/usb/devices/3-3/idVendor
++ '[' 0951 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-4/idVendor ']'
+++ cat /sys/bus/usb/devices/3-4/idVendor
++ '[' 0764 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb1/idVendor ']'
+++ cat /sys/bus/usb/devices/usb1/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb2/idVendor ']'
+++ cat /sys/bus/usb/devices/usb2/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb3/idVendor ']'
+++ cat /sys/bus/usb/devices/usb3/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb4/idVendor ']'
+++ cat /sys/bus/usb/devices/usb4/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb5/idVendor ']'
+++ cat /sys/bus/usb/devices/usb5/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ i=3
++ sleep 0.1
+ctrl 80 06 value=0100 index=0000 len=18
+ctrl 80 06 value=0200 index=0000 len=9
+ctrl 80 06 value=0200 index=0000 len=32
+ctrl 80 06 value=0300 index=0000 len=255
+ctrl 80 06 value=0302 index=0409 len=255
+ctrl 80 06 value=0301 index=0409 len=255
++ '[' 3 -lt 50 ']'
+ctrl 80 06 value=0303 index=0409 len=255
++ for f in /sys/bus/usb/devices/*/idVendor
+ctrl 00 09 value=0001 index=0000 len=0
++ '[' -e /sys/bus/usb/devices/1-1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-1/idVendor
++ '[' 0c45 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.1/idVendor
++ '[' 3443 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.3/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.3/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.4/idVendor
++ '[' 043e = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-4/idVendor
++ '[' 3537 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-5/idVendor ']'
+++ cat /sys/bus/usb/devices/1-5/idVendor
++ '[' 8087 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-6/idVendor ']'
+++ cat /sys/bus/usb/devices/1-6/idVendor
++ '[' 0b05 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-7/idVendor ']'
+++ cat /sys/bus/usb/devices/1-7/idVendor
++ '[' 2022 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-3/idVendor ']'
+++ cat /sys/bus/usb/devices/3-3/idVendor
++ '[' 0951 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-4/idVendor ']'
+++ cat /sys/bus/usb/devices/3-4/idVendor
++ '[' 0764 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb1/idVendor ']'
+++ cat /sys/bus/usb/devices/usb1/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb2/idVendor ']'
+++ cat /sys/bus/usb/devices/usb2/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb3/idVendor ']'
+++ cat /sys/bus/usb/devices/usb3/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb4/idVendor ']'
+++ cat /sys/bus/usb/devices/usb4/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb5/idVendor ']'
+++ cat /sys/bus/usb/devices/usb5/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ i=4
++ sleep 0.1
+ctrl c1 01 value=0100 index=0000 len=20
+ctrl c1 01 value=0100 index=0000 len=20
++ '[' 4 -lt 50 ']'
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-1/idVendor
++ '[' 0c45 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.1/idVendor
++ '[' 3443 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.3/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.3/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.4/idVendor
++ '[' 043e = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-4/idVendor
++ '[' 3537 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-5/idVendor ']'
+++ cat /sys/bus/usb/devices/1-5/idVendor
++ '[' 8087 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-6/idVendor ']'
+++ cat /sys/bus/usb/devices/1-6/idVendor
++ '[' 0b05 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-7/idVendor ']'
+++ cat /sys/bus/usb/devices/1-7/idVendor
++ '[' 2022 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-3/idVendor ']'
+++ cat /sys/bus/usb/devices/3-3/idVendor
++ '[' 0951 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-4/idVendor ']'
+++ cat /sys/bus/usb/devices/3-4/idVendor
++ '[' 0764 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/5-1/idVendor ']'
+++ cat /sys/bus/usb/devices/5-1/idVendor
++ '[' 045e = 045e ']'
+++ dirname /sys/bus/usb/devices/5-1/idVendor
++ d=/sys/bus/usb/devices/5-1
+++ cat /sys/bus/usb/devices/5-1/idProduct
++ '[' 028e = 028e ']'
+++ cat /sys/bus/usb/devices/5-1/bConfigurationValue
++ '[' 1 = 1 ']'
++ return 0
++ sleep 1
++ echo '=== /tmp/fake-pad-regression.log.stock fake device state ==='
+=== /tmp/fake-pad-regression.log.stock fake device state ===
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-1/idVendor
++ '[' 0c45 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.1/idVendor
++ '[' 3443 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.3/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.3/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.4/idVendor
++ '[' 043e = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-4/idVendor
++ '[' 3537 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-5/idVendor ']'
+++ cat /sys/bus/usb/devices/1-5/idVendor
++ '[' 8087 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-6/idVendor ']'
+++ cat /sys/bus/usb/devices/1-6/idVendor
++ '[' 0b05 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-7/idVendor ']'
+++ cat /sys/bus/usb/devices/1-7/idVendor
++ '[' 2022 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-3/idVendor ']'
+++ cat /sys/bus/usb/devices/3-3/idVendor
++ '[' 0951 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-4/idVendor ']'
+++ cat /sys/bus/usb/devices/3-4/idVendor
++ '[' 0764 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/5-1/idVendor ']'
+++ cat /sys/bus/usb/devices/5-1/idVendor
++ '[' 045e = 045e ']'
+++ dirname /sys/bus/usb/devices/5-1/idVendor
++ d=/sys/bus/usb/devices/5-1
+++ cat /sys/bus/usb/devices/5-1/idProduct
++ '[' 028e = 028e ']'
+++ cat /sys/bus/usb/devices/5-1/bDeviceClass
+++ cat /sys/bus/usb/devices/5-1/bConfigurationValue
++ echo 'path=/sys/bus/usb/devices/5-1 class=00 cfg=1'
+path=/sys/bus/usb/devices/5-1 class=00 cfg=1
++ for i in "$d"/*:*/
++ '[' -e /sys/bus/usb/devices/5-1/5-1:1.0/ ']'
+++ basename /sys/bus/usb/devices/5-1/5-1:1.0/
++++ readlink -f /sys/bus/usb/devices/5-1/5-1:1.0//driver
+++ basename /sys/bus/usb/drivers/xpad
++ echo '  interface 5-1:1.0 driver=xpad'
+  interface 5-1:1.0 driver=xpad
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb1/idVendor ']'
+++ cat /sys/bus/usb/devices/usb1/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb2/idVendor ']'
+++ cat /sys/bus/usb/devices/usb2/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb3/idVendor ']'
+++ cat /sys/bus/usb/devices/usb3/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb4/idVendor ']'
+++ cat /sys/bus/usb/devices/usb4/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb5/idVendor ']'
+++ cat /sys/bus/usb/devices/usb5/idVendor
++ '[' 1d6b = 045e ']'
++ continue
+++ ls /sys/bus/usb/drivers/xpad/
+++ tr '\n' ' '
++ echo 'xpad driver entries: 5-1:1.0 bind module new_id remove_id uevent unbind '
+xpad driver entries: 5-1:1.0 bind module new_id remove_id uevent unbind 
++ dmesg
++ tail -40
+[ 9806.564481] hub 5-0:1.0: USB hub found
+[ 9806.564493] hub 5-0:1.0: 1 port detected
+[ 9807.415889] usbcore: deregistering interface driver xpad
+[ 9807.446391] usbcore: registered new interface driver xpad
+[ 9807.665437] usb 5-1: new high-speed USB device number 2 using dummy_hcd
+[ 9807.788875] usb 5-1: New USB device found, idVendor=045e, idProduct=028e, bcdDevice= 1.14
+[ 9807.790474] usb 5-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 9807.790478] usb 5-1: Product: Fake Xbox 360 Pad
+[ 9807.790480] usb 5-1: Manufacturer: OpenCode
+[ 9807.790482] usb 5-1: SerialNumber: 0001
+[ 9809.016205] usb 5-1: USB disconnect, device number 2
+[ 9809.046039] usbcore: deregistering interface driver xpad
+[ 9809.065505] usbcore: registered new interface driver xpad
+[ 9809.068242] dummy_hcd dummy_hcd.0: remove, state 1
+[ 9809.068250] usb usb5: USB disconnect, device number 1
+[ 9809.071045] dummy_hcd dummy_hcd.0: stopped
+[ 9809.071049] dummy_hcd dummy_hcd.0: USB bus 5 deregistered
+[ 9866.559791] [UFW BLOCK] IN=enp10s0 OUT= MAC=<mac>:<mac>:08:00 SRC=<ip> DST=<ip> LEN=32 TOS=0x00 PREC=0xC0 TTL=1 ID=38530 PROTO=2 
+[ 9882.322259] [UFW BLOCK] IN=enp10s0 OUT= MAC=<mac>:<mac>:08:00 SRC=<ip> DST=<ip> LEN=55 TOS=0x00 PREC=0x00 TTL=38 ID=59830 PROTO=UDP SPT=61473 DPT=35664 LEN=35 
+[ 9901.278112] dummy_hcd dummy_hcd.0: USB Host+Gadget Emulator, driver 02 May 2005
+[ 9901.278127] dummy_hcd dummy_hcd.0: Dummy host controller
+[ 9901.278132] dummy_hcd dummy_hcd.0: new USB bus registered, assigned bus number 5
+[ 9901.278168] usb usb5: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 7.03
+[ 9901.278209] usb usb5: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[ 9901.278212] usb usb5: Product: Dummy host controller
+[ 9901.278214] usb usb5: Manufacturer: Linux 7.3.3-1-cachyos dummy_hcd
+[ 9901.278217] usb usb5: SerialNumber: dummy_hcd.0
+[ 9901.278559] hub 5-0:1.0: USB hub found
+[ 9901.278571] hub 5-0:1.0: 1 port detected
+[ 9902.116758] usbcore: deregistering interface driver xpad
+[ 9902.148995] usbcore: registered new interface driver xpad
+[ 9902.368380] usb 5-1: new high-speed USB device number 2 using dummy_hcd
+[ 9902.492647] usb 5-1: New USB device found, idVendor=045e, idProduct=028e, bcdDevice= 1.14
+[ 9902.494207] usb 5-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 9902.494211] usb 5-1: Product: Fake Xbox 360 Pad
+[ 9902.494213] usb 5-1: Manufacturer: OpenCode
+[ 9902.494215] usb 5-1: SerialNumber: 0001
+[ 9902.494945] input: Microsoft X-Box 360 pad as /devices/platform/dummy_hcd.0/usb5/5-1/5-1:1.0/input/input230
+[ 9902.515446] input input230: unable to receive magic message: -32
+[ 9902.538115] input input230: unable to receive magic message: -32
++ echo '=== /tmp/fake-pad-regression.log.stock input devices ==='
+=== /tmp/fake-pad-regression.log.stock input devices ===
++ cat /proc/bus/input/devices
+I: Bus=0019 Vendor=0000 Product=0001 Version=0000
+N: Name="Power Button"
+P: Phys=PNP0C0C/button/input0
+S: Sysfs=/devices/platform/PNP0C0C:00/input/input0
+U: Uniq=<redacted>
+H: Handlers=kbd event0 
+B: PROP=0
+B: EV=3
+B: KEY=8000 10000000000000 0
+
+I: Bus=0019 Vendor=0000 Product=0001 Version=0000
+N: Name="Power Button"
+P: Phys=LNXPWRBN/button/input0
+S: Sysfs=/devices/platform/LNXPWRBN:00/input/input1
+U: Uniq=<redacted>
+H: Handlers=kbd event1 
+B: PROP=0
+B: EV=3
+B: KEY=8000 10000000000000 0
+
+I: Bus=0003 Vendor=0951 Product=16de Version=0111
+N: Name="Kingston HyperX Pulsefire Core"
+P: Phys=usb-0000:0f:00.3-3/input0
+S: Sysfs=/devices/pci0000:00/0000:00:08.1/0000:0f:00.3/usb3/3-3/3-3:1.0/0003:0951:16DE.0001/input/input2
+U: Uniq=<redacted>
+H: Handlers=event2 mouse0 
+B: PROP=0
+B: EV=17
+B: KEY=1f0000 0 0 0 0
+B: REL=1943
+B: MSC=10
+
+I: Bus=0003 Vendor=0951 Product=16de Version=0111
+N: Name="Kingston HyperX Pulsefire Core Keyboard"
+P: Phys=usb-0000:0f:00.3-3/input1
+S: Sysfs=/devices/pci0000:00/0000:00:08.1/0000:0f:00.3/usb3/3-3/3-3:1.1/0003:0951:16DE.0002/input/input3
+U: Uniq=<redacted>
+H: Handlers=sysrq kbd leds event3 
+B: PROP=0
+B: EV=12001f
+B: KEY=3f00733fff 0 0 483ffff17aff32d bfd4444600000000 1 130ff38b17d007 ffff7bfad941dfff ffbeffdfffefffff fffffffffffffffe
+B: REL=1040
+B: ABS=100000000
+B: MSC=10
+B: LED=1f
+
+I: Bus=0003 Vendor=0c45 Product=7603 Version=0111
+N: Name="USB Keyboard"
+P: Phys=usb-0000:02:00.0-1/input0
+S: Sysfs=/devices/pci0000:00/0000:00:01.2/0000:02:00.0/usb1/1-1/1-1:1.0/0003:0C45:7603.0004/input/input5
+U: Uniq=<redacted>
+H: Handlers=sysrq kbd leds event4 
+B: PROP=0
+B: EV=120013
+B: KEY=1000000000007 ff9f207ac14057ff febeffdfffefffff fffffffffffffffe
+B: MSC=10
+B: LED=1f
+
+I: Bus=0003 Vendor=0c45 Product=7603 Version=0111
+N: Name="USB Keyboard Consumer Control"
+P: Phys=usb-0000:02:00.0-1/input1
+S: Sysfs=/devices/pci0000:00/0000:00:01.2/0000:02:00.0/usb1/1-1/1-1:1.1/0003:0C45:7603.0005/input/input6
+U: Uniq=<redacted>
+H: Handlers=kbd event5 
+B: PROP=0
+B: EV=1f
+B: KEY=3f00733fff 0 0 483ffff17aff32d bfd4444600000000 1 130ff38b17d000 677bfad9415fed 19ed68000004400 10000002
+B: REL=1040
+B: ABS=100000000
+B: MSC=10
+
+I: Bus=0003 Vendor=0c45 Product=7603 Version=0111
+N: Name="USB Keyboard System Control"
+P: Phys=usb-0000:02:00.0-1/input1
+S: Sysfs=/devices/pci0000:00/0000:00:01.2/0000:02:00.0/usb1/1-1/1-1:1.1/0003:0C45:7603.0005/input/input7
+U: Uniq=<redacted>
+H: Handlers=kbd event6 
+B: PROP=0
+B: EV=13
+B: KEY=c000 10000000000000 0
+B: MSC=10
+
+I: Bus=0003 Vendor=0c45 Product=7603 Version=0111
+N: Name="USB Keyboard"
+P: Phys=usb-0000:02:00.0-1/input1
+S: Sysfs=/devices/pci0000:00/0000:00:01.2/0000:02:00.0/usb1/1-1/1-1:1.1/0003:0C45:7603.0005/input/input9
+U: Uniq=<redacted>
+H: Handlers=sysrq kbd event7 
+B: PROP=0
+B: EV=100013
+B: KEY=1000000000007 ff800000000007ff febeffdfffefffff fffffffffffffffe
+B: MSC=10
+
+I: Bus=0003 Vendor=0bda Product=4cb6 Version=0111
+N: Name="Generic LG Monitor Headset MIC Consumer Control"
+P: Phys=usb-0000:02:00.0-2.3/input0
+S: Sysfs=/devices/pci0000:00/0000:00:01.2/0000:02:00.0/usb1/1-2/1-2.3/1-2.3:1.0/0003:0BDA:4CB6.0007/input/input10
+U: Uniq=<redacted>
+H: Handlers=kbd event8 
+B: PROP=0
+B: EV=13
+B: KEY=40 0 0 0 0 0 0 3800000000 c000000000000 0
+B: MSC=10
+
+I: Bus=0003 Vendor=0bda Product=4cb6 Version=0111
+N: Name="Generic LG Monitor Headset MIC"
+P: Phys=usb-0000:02:00.0-2.3/input0
+S: Sysfs=/devices/pci0000:00/0000:00:01.2/0000:02:00.0/usb1/1-2/1-2.3/1-2.3:1.0/0003:0BDA:4CB6.0007/input/input11
+U: Uniq=<redacted>
+H: Handlers=event9 
+B: PROP=0
+B: EV=9
+B: ABS=10000000000
+
+I: Bus=0010 Vendor=001f Product=0001 Version=0100
+N: Name="PC Speaker"
+P: Phys=isa0061/input0
+S: Sysfs=/devices/platform/pcspkr/input/input12
+U: Uniq=<redacted>
+H: Handlers=kbd event10 
+B: PROP=0
+B: EV=40001
+B: SND=6
+
+I: Bus=0019 Vendor=0000 Product=0000 Version=0000
+N: Name="Eee PC WMI hotkeys"
+P: Phys=eeepc-wmi/input0
+S: Sysfs=/devices/platform/eeepc-wmi/input/input14
+U: Uniq=<redacted>
+H: Handlers=kbd event12 rfkill 
+B: PROP=0
+B: EV=100013
+B: KEY=7e40000 0 800000000000 0 0 1400b00100000 300180001100800 e000000000000 2
+B: MSC=10
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HDA ATI HDMI HDMI/DP,pcm=3"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:03.1/0000:0b:00.0/0000:0c:00.0/0000:0d:00.1/sound/card0/input15
+U: Uniq=<redacted>
+H: Handlers=event13 
+B: PROP=0
+B: EV=21
+B: SW=140
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HDA ATI HDMI HDMI/DP,pcm=7"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:03.1/0000:0b:00.0/0000:0c:00.0/0000:0d:00.1/sound/card0/input16
+U: Uniq=<redacted>
+H: Handlers=event14 
+B: PROP=0
+B: EV=21
+B: SW=140
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HDA ATI HDMI HDMI/DP,pcm=8"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:03.1/0000:0b:00.0/0000:0c:00.0/0000:0d:00.1/sound/card0/input17
+U: Uniq=<redacted>
+H: Handlers=event15 
+B: PROP=0
+B: EV=21
+B: SW=140
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HDA ATI HDMI HDMI/DP,pcm=9"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:03.1/0000:0b:00.0/0000:0c:00.0/0000:0d:00.1/sound/card0/input18
+U: Uniq=<redacted>
+H: Handlers=event16 
+B: PROP=0
+B: EV=21
+B: SW=140
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HD-Audio Generic Rear Mic"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:08.1/0000:0f:00.4/sound/card1/input19
+U: Uniq=<redacted>
+H: Handlers=event17 
+B: PROP=0
+B: EV=21
+B: SW=10
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HD-Audio Generic Front Mic"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:08.1/0000:0f:00.4/sound/card1/input20
+U: Uniq=<redacted>
+H: Handlers=event18 
+B: PROP=0
+B: EV=21
+B: SW=10
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HD-Audio Generic Line"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:08.1/0000:0f:00.4/sound/card1/input21
+U: Uniq=<redacted>
+H: Handlers=event19 
+B: PROP=0
+B: EV=21
+B: SW=2000
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HD-Audio Generic Line Out"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:08.1/0000:0f:00.4/sound/card1/input22
+U: Uniq=<redacted>
+H: Handlers=event20 
+B: PROP=0
+B: EV=21
+B: SW=40
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HD-Audio Generic Front Headphone"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:08.1/0000:0f:00.4/sound/card1/input23
+U: Uniq=<redacted>
+H: Handlers=event21 
+B: PROP=0
+B: EV=21
+B: SW=4
+
+I: Bus=0003 Vendor=054c Product=05c4 Version=8111
+N: Name="GameSir G7 Pro (Virtual DualShock 4)"
+P: Phys=
+S: Sysfs=/devices/virtual/misc/uhid/0003:054C:05C4.0031/input/input227
+U: Uniq=<redacted>
+H: Handlers=event11 js0 
+B: PROP=0
+B: EV=20000b
+B: KEY=7fdb000000000000 0 0 0 0
+B: ABS=3003f
+B: FF=107030000 0
+
+I: Bus=0003 Vendor=054c Product=05c4 Version=8111
+N: Name="GameSir G7 Pro (Virtual DualShock 4) Motion Sensors"
+P: Phys=
+S: Sysfs=/devices/virtual/misc/uhid/0003:054C:05C4.0031/input/input228
+U: Uniq=<redacted>
+H: Handlers=event22 
+B: PROP=40
+B: EV=19
+B: ABS=3f
+B: MSC=20
+
+I: Bus=0003 Vendor=054c Product=05c4 Version=8111
+N: Name="GameSir G7 Pro (Virtual DualShock 4) Touchpad"
+P: Phys=
+S: Sysfs=/devices/virtual/misc/uhid/0003:054C:05C4.0031/input/input229
+U: Uniq=<redacted>
+H: Handlers=event23 mouse1 
+B: PROP=5
+B: EV=b
+B: KEY=2420 10000 0 0 0 0
+B: ABS=260800000000003
+
+I: Bus=0003 Vendor=045e Product=028e Version=0114
+N: Name="Microsoft X-Box 360 pad"
+P: Phys=usb-dummy_hcd.0-1/input0
+S: Sysfs=/devices/platform/dummy_hcd.0/usb5/5-1/5-1:1.0/input/input230
+U: Uniq=<redacted>
+H: Handlers=event24 js1 
+B: PROP=0
+B: EV=20000b
+B: KEY=7cdb000000000000 0 0 0 0
+B: ABS=3003f
+B: FF=107030000 0
+
++ capture /tmp/fake-pad-regression.log.stock
++ out=/tmp/fake-pad-regression.log.stock
++ :
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event0 ']'
+++ basename /dev/input/event0
++ base=/sys/class/input/event0/device
+++ cat /sys/class/input/event0/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event1 ']'
+++ basename /dev/input/event1
++ base=/sys/class/input/event1/device
+++ cat /sys/class/input/event1/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event10 ']'
+++ basename /dev/input/event10
++ base=/sys/class/input/event10/device
+++ cat /sys/class/input/event10/device/id/vendor
++ '[' 001f = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event11 ']'
+++ basename /dev/input/event11
++ base=/sys/class/input/event11/device
+++ cat /sys/class/input/event11/device/id/vendor
++ '[' 054c = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event12 ']'
+++ basename /dev/input/event12
++ base=/sys/class/input/event12/device
+++ cat /sys/class/input/event12/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event13 ']'
+++ basename /dev/input/event13
++ base=/sys/class/input/event13/device
+++ cat /sys/class/input/event13/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event14 ']'
+++ basename /dev/input/event14
++ base=/sys/class/input/event14/device
+++ cat /sys/class/input/event14/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event15 ']'
+++ basename /dev/input/event15
++ base=/sys/class/input/event15/device
+++ cat /sys/class/input/event15/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event16 ']'
+++ basename /dev/input/event16
++ base=/sys/class/input/event16/device
+++ cat /sys/class/input/event16/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event17 ']'
+++ basename /dev/input/event17
++ base=/sys/class/input/event17/device
+++ cat /sys/class/input/event17/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event18 ']'
+++ basename /dev/input/event18
++ base=/sys/class/input/event18/device
+++ cat /sys/class/input/event18/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event19 ']'
+++ basename /dev/input/event19
++ base=/sys/class/input/event19/device
+++ cat /sys/class/input/event19/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event2 ']'
+++ basename /dev/input/event2
++ base=/sys/class/input/event2/device
+++ cat /sys/class/input/event2/device/id/vendor
++ '[' 0951 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event20 ']'
+++ basename /dev/input/event20
++ base=/sys/class/input/event20/device
+++ cat /sys/class/input/event20/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event21 ']'
+++ basename /dev/input/event21
++ base=/sys/class/input/event21/device
+++ cat /sys/class/input/event21/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event22 ']'
+++ basename /dev/input/event22
++ base=/sys/class/input/event22/device
+++ cat /sys/class/input/event22/device/id/vendor
++ '[' 054c = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event23 ']'
+++ basename /dev/input/event23
++ base=/sys/class/input/event23/device
+++ cat /sys/class/input/event23/device/id/vendor
++ '[' 054c = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event24 ']'
+++ basename /dev/input/event24
++ base=/sys/class/input/event24/device
+++ cat /sys/class/input/event24/device/id/vendor
++ '[' 045e = 045e ']'
+++ cat /sys/class/input/event24/device/id/product
++ '[' 028e = 028e ']'
+++ cat /sys/class/input/event24/device/name
++ echo '-- Microsoft X-Box 360 pad'
++ /tmp/evdev_caps_report /dev/input/event24
+ctrl c1 01 value=0100 index=0000 len=20
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event3 ']'
+++ basename /dev/input/event3
++ base=/sys/class/input/event3/device
+++ cat /sys/class/input/event3/device/id/vendor
++ '[' 0951 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event4 ']'
+++ basename /dev/input/event4
++ base=/sys/class/input/event4/device
+++ cat /sys/class/input/event4/device/id/vendor
++ '[' 0c45 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event5 ']'
+++ basename /dev/input/event5
++ base=/sys/class/input/event5/device
+++ cat /sys/class/input/event5/device/id/vendor
++ '[' 0c45 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event6 ']'
+++ basename /dev/input/event6
++ base=/sys/class/input/event6/device
+++ cat /sys/class/input/event6/device/id/vendor
++ '[' 0c45 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event7 ']'
+++ basename /dev/input/event7
++ base=/sys/class/input/event7/device
+++ cat /sys/class/input/event7/device/id/vendor
++ '[' 0c45 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event8 ']'
+++ basename /dev/input/event8
++ base=/sys/class/input/event8/device
+++ cat /sys/class/input/event8/device/id/vendor
++ '[' 0bda = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event9 ']'
+++ basename /dev/input/event9
++ base=/sys/class/input/event9/device
+++ cat /sys/class/input/event9/device/id/vendor
++ '[' 0bda = 045e ']'
++ continue
+++ grep -c '^-- ' /tmp/fake-pad-regression.log.stock
++ n=1
++ '[' 1 -eq 0 ']'
++ echo 'captured 1 input node(s) for /tmp/fake-pad-regression.log.stock'
+captured 1 input node(s) for /tmp/fake-pad-regression.log.stock
++ kill 136257
++ wait 136257
++ FAKE_PID=
++ sleep 1
++ rmmod xpad
++ run_case /tmp/fake-pad-regression.log.patched insmod /home/greenstar/Projects/g7pro-kernel/xpad/xpad.ko
++ tag=/tmp/fake-pad-regression.log.patched
++ shift
++ insmod /home/greenstar/Projects/g7pro-kernel/xpad/xpad.ko
++ FAKE_PID=136471
++ wait_for_fake
++ /tmp/fake_xpad
++ i=0
++ '[' 0 -lt 50 ']'
+sizes: device=18 config=9 interface=9 ep=7 blob=32
+fake xpad 045e:028e running
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-1/idVendor
++ '[' 0c45 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.1/idVendor
++ '[' 3443 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.3/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.3/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.4/idVendor
++ '[' 043e = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-4/idVendor
++ '[' 3537 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-5/idVendor ']'
+++ cat /sys/bus/usb/devices/1-5/idVendor
++ '[' 8087 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-6/idVendor ']'
+++ cat /sys/bus/usb/devices/1-6/idVendor
++ '[' 0b05 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-7/idVendor ']'
+++ cat /sys/bus/usb/devices/1-7/idVendor
++ '[' 2022 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-3/idVendor ']'
+++ cat /sys/bus/usb/devices/3-3/idVendor
++ '[' 0951 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-4/idVendor ']'
+++ cat /sys/bus/usb/devices/3-4/idVendor
++ '[' 0764 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb1/idVendor ']'
+++ cat /sys/bus/usb/devices/usb1/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb2/idVendor ']'
+++ cat /sys/bus/usb/devices/usb2/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb3/idVendor ']'
+++ cat /sys/bus/usb/devices/usb3/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb4/idVendor ']'
+++ cat /sys/bus/usb/devices/usb4/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb5/idVendor ']'
+++ cat /sys/bus/usb/devices/usb5/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ i=1
++ sleep 0.1
++ '[' 1 -lt 50 ']'
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-1/idVendor
++ '[' 0c45 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.1/idVendor
++ '[' 3443 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.3/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.3/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.4/idVendor
++ '[' 043e = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-4/idVendor
++ '[' 3537 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-5/idVendor ']'
+++ cat /sys/bus/usb/devices/1-5/idVendor
++ '[' 8087 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-6/idVendor ']'
+++ cat /sys/bus/usb/devices/1-6/idVendor
++ '[' 0b05 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-7/idVendor ']'
+++ cat /sys/bus/usb/devices/1-7/idVendor
++ '[' 2022 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-3/idVendor ']'
+++ cat /sys/bus/usb/devices/3-3/idVendor
++ '[' 0951 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-4/idVendor ']'
+++ cat /sys/bus/usb/devices/3-4/idVendor
++ '[' 0764 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb1/idVendor ']'
+++ cat /sys/bus/usb/devices/usb1/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb2/idVendor ']'
+++ cat /sys/bus/usb/devices/usb2/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb3/idVendor ']'
+++ cat /sys/bus/usb/devices/usb3/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb4/idVendor ']'
+++ cat /sys/bus/usb/devices/usb4/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb5/idVendor ']'
+++ cat /sys/bus/usb/devices/usb5/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ i=2
++ sleep 0.1
+ctrl 80 06 value=0100 index=0000 len=64
++ '[' 2 -lt 50 ']'
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-1/idVendor
++ '[' 0c45 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.1/idVendor
++ '[' 3443 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.3/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.3/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.4/idVendor
++ '[' 043e = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-4/idVendor
++ '[' 3537 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-5/idVendor ']'
+++ cat /sys/bus/usb/devices/1-5/idVendor
++ '[' 8087 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-6/idVendor ']'
+++ cat /sys/bus/usb/devices/1-6/idVendor
++ '[' 0b05 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-7/idVendor ']'
+++ cat /sys/bus/usb/devices/1-7/idVendor
++ '[' 2022 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-3/idVendor ']'
+++ cat /sys/bus/usb/devices/3-3/idVendor
++ '[' 0951 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-4/idVendor ']'
+++ cat /sys/bus/usb/devices/3-4/idVendor
++ '[' 0764 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb1/idVendor ']'
+++ cat /sys/bus/usb/devices/usb1/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb2/idVendor ']'
+++ cat /sys/bus/usb/devices/usb2/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb3/idVendor ']'
+++ cat /sys/bus/usb/devices/usb3/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb4/idVendor ']'
+++ cat /sys/bus/usb/devices/usb4/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb5/idVendor ']'
+++ cat /sys/bus/usb/devices/usb5/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ i=3
++ sleep 0.1
+ctrl 80 06 value=0100 index=0000 len=18
+ctrl 80 06 value=0200 index=0000 len=9
+ctrl 80 06 value=0200 index=0000 len=32
+ctrl 80 06 value=0300 index=0000 len=255
+ctrl 80 06 value=0302 index=0409 len=255
+ctrl 80 06 value=0301 index=0409 len=255
+ctrl 80 06 value=0303 index=0409 len=255
+ctrl 00 09 value=0001 index=0000 len=0
++ '[' 3 -lt 50 ']'
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-1/idVendor
++ '[' 0c45 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.1/idVendor
++ '[' 3443 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.3/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.3/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.4/idVendor
++ '[' 043e = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-4/idVendor
++ '[' 3537 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-5/idVendor ']'
+++ cat /sys/bus/usb/devices/1-5/idVendor
++ '[' 8087 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-6/idVendor ']'
+++ cat /sys/bus/usb/devices/1-6/idVendor
++ '[' 0b05 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-7/idVendor ']'
+++ cat /sys/bus/usb/devices/1-7/idVendor
++ '[' 2022 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-3/idVendor ']'
+++ cat /sys/bus/usb/devices/3-3/idVendor
++ '[' 0951 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-4/idVendor ']'
+++ cat /sys/bus/usb/devices/3-4/idVendor
++ '[' 0764 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/5-1/idVendor ']'
+++ cat /sys/bus/usb/devices/5-1/idVendor
++ '[' 045e = 045e ']'
+++ dirname /sys/bus/usb/devices/5-1/idVendor
++ d=/sys/bus/usb/devices/5-1
+ctrl c1 01 value=0100 index=0000 len=20
+++ cat /sys/bus/usb/devices/5-1/idProduct
++ '[' 028e = 028e ']'
+++ cat /sys/bus/usb/devices/5-1/bConfigurationValue
++ '[' 1 = 1 ']'
++ return 0
++ sleep 1
+ctrl c1 01 value=0100 index=0000 len=20
++ echo '=== /tmp/fake-pad-regression.log.patched fake device state ==='
+=== /tmp/fake-pad-regression.log.patched fake device state ===
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-1/idVendor
++ '[' 0c45 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.1/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.1/idVendor
++ '[' 3443 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.3/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.3/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2.4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2.4/idVendor
++ '[' 043e = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-2/idVendor ']'
+++ cat /sys/bus/usb/devices/1-2/idVendor
++ '[' 0bda = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-4/idVendor ']'
+++ cat /sys/bus/usb/devices/1-4/idVendor
++ '[' 3537 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-5/idVendor ']'
+++ cat /sys/bus/usb/devices/1-5/idVendor
++ '[' 8087 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-6/idVendor ']'
+++ cat /sys/bus/usb/devices/1-6/idVendor
++ '[' 0b05 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/1-7/idVendor ']'
+++ cat /sys/bus/usb/devices/1-7/idVendor
++ '[' 2022 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-3/idVendor ']'
+++ cat /sys/bus/usb/devices/3-3/idVendor
++ '[' 0951 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/3-4/idVendor ']'
+++ cat /sys/bus/usb/devices/3-4/idVendor
++ '[' 0764 = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/5-1/idVendor ']'
+++ cat /sys/bus/usb/devices/5-1/idVendor
++ '[' 045e = 045e ']'
+++ dirname /sys/bus/usb/devices/5-1/idVendor
++ d=/sys/bus/usb/devices/5-1
+++ cat /sys/bus/usb/devices/5-1/idProduct
++ '[' 028e = 028e ']'
+++ cat /sys/bus/usb/devices/5-1/bDeviceClass
+++ cat /sys/bus/usb/devices/5-1/bConfigurationValue
++ echo 'path=/sys/bus/usb/devices/5-1 class=00 cfg=1'
+path=/sys/bus/usb/devices/5-1 class=00 cfg=1
++ for i in "$d"/*:*/
++ '[' -e /sys/bus/usb/devices/5-1/5-1:1.0/ ']'
+++ basename /sys/bus/usb/devices/5-1/5-1:1.0/
++++ readlink -f /sys/bus/usb/devices/5-1/5-1:1.0//driver
+++ basename /sys/bus/usb/drivers/xpad
++ echo '  interface 5-1:1.0 driver=xpad'
+  interface 5-1:1.0 driver=xpad
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb1/idVendor ']'
+++ cat /sys/bus/usb/devices/usb1/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb2/idVendor ']'
+++ cat /sys/bus/usb/devices/usb2/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb3/idVendor ']'
+++ cat /sys/bus/usb/devices/usb3/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb4/idVendor ']'
+++ cat /sys/bus/usb/devices/usb4/idVendor
++ '[' 1d6b = 045e ']'
++ continue
++ for f in /sys/bus/usb/devices/*/idVendor
++ '[' -e /sys/bus/usb/devices/usb5/idVendor ']'
+++ cat /sys/bus/usb/devices/usb5/idVendor
++ '[' 1d6b = 045e ']'
++ continue
+++ ls /sys/bus/usb/drivers/xpad/
+++ tr '\n' ' '
++ echo 'xpad driver entries: 5-1:1.0 bind module new_id remove_id uevent unbind '
+xpad driver entries: 5-1:1.0 bind module new_id remove_id uevent unbind 
++ dmesg
++ tail -40
+[ 9809.068250] usb usb5: USB disconnect, device number 1
+[ 9809.071045] dummy_hcd dummy_hcd.0: stopped
+[ 9809.071049] dummy_hcd dummy_hcd.0: USB bus 5 deregistered
+[ 9866.559791] [UFW BLOCK] IN=enp10s0 OUT= MAC=<mac>:<mac>:08:00 SRC=<ip> DST=<ip> LEN=32 TOS=0x00 PREC=0xC0 TTL=1 ID=38530 PROTO=2 
+[ 9882.322259] [UFW BLOCK] IN=enp10s0 OUT= MAC=<mac>:<mac>:08:00 SRC=<ip> DST=<ip> LEN=55 TOS=0x00 PREC=0x00 TTL=38 ID=59830 PROTO=UDP SPT=61473 DPT=35664 LEN=35 
+[ 9901.278112] dummy_hcd dummy_hcd.0: USB Host+Gadget Emulator, driver 02 May 2005
+[ 9901.278127] dummy_hcd dummy_hcd.0: Dummy host controller
+[ 9901.278132] dummy_hcd dummy_hcd.0: new USB bus registered, assigned bus number 5
+[ 9901.278168] usb usb5: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 7.03
+[ 9901.278209] usb usb5: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[ 9901.278212] usb usb5: Product: Dummy host controller
+[ 9901.278214] usb usb5: Manufacturer: Linux 7.3.3-1-cachyos dummy_hcd
+[ 9901.278217] usb usb5: SerialNumber: dummy_hcd.0
+[ 9901.278559] hub 5-0:1.0: USB hub found
+[ 9901.278571] hub 5-0:1.0: 1 port detected
+[ 9902.116758] usbcore: deregistering interface driver xpad
+[ 9902.148995] usbcore: registered new interface driver xpad
+[ 9902.368380] usb 5-1: new high-speed USB device number 2 using dummy_hcd
+[ 9902.492647] usb 5-1: New USB device found, idVendor=045e, idProduct=028e, bcdDevice= 1.14
+[ 9902.494207] usb 5-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 9902.494211] usb 5-1: Product: Fake Xbox 360 Pad
+[ 9902.494213] usb 5-1: Manufacturer: OpenCode
+[ 9902.494215] usb 5-1: SerialNumber: 0001
+[ 9902.494945] input: Microsoft X-Box 360 pad as /devices/platform/dummy_hcd.0/usb5/5-1/5-1:1.0/input/input230
+[ 9902.515446] input input230: unable to receive magic message: -32
+[ 9902.538115] input input230: unable to receive magic message: -32
+[ 9903.685918] input input230: unable to receive magic message: -32
+[ 9903.712090] usb 5-1: USB disconnect, device number 2
+[ 9903.712145] xpad 5-1:1.0: xpad_irq_out - usb_submit_urb failed with result -19
+[ 9904.715581] usbcore: deregistering interface driver xpad
+[ 9904.762980] usbcore: registered new interface driver xpad
+[ 9904.978346] usb 5-1: new high-speed USB device number 3 using dummy_hcd
+[ 9905.104623] usb 5-1: New USB device found, idVendor=045e, idProduct=028e, bcdDevice= 1.14
+[ 9905.106165] usb 5-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 9905.106168] usb 5-1: Product: Fake Xbox 360 Pad
+[ 9905.106170] usb 5-1: Manufacturer: OpenCode
+[ 9905.106172] usb 5-1: SerialNumber: 0001
+[ 9905.106936] input: Microsoft X-Box 360 pad as /devices/platform/dummy_hcd.0/usb5/5-1/5-1:1.0/input/input231
+[ 9905.120608] input input231: unable to receive magic message: -32
+[ 9905.133041] input input231: unable to receive magic message: -32
++ echo '=== /tmp/fake-pad-regression.log.patched input devices ==='
+=== /tmp/fake-pad-regression.log.patched input devices ===
++ cat /proc/bus/input/devices
+I: Bus=0019 Vendor=0000 Product=0001 Version=0000
+N: Name="Power Button"
+P: Phys=PNP0C0C/button/input0
+S: Sysfs=/devices/platform/PNP0C0C:00/input/input0
+U: Uniq=<redacted>
+H: Handlers=kbd event0 
+B: PROP=0
+B: EV=3
+B: KEY=8000 10000000000000 0
+
+I: Bus=0019 Vendor=0000 Product=0001 Version=0000
+N: Name="Power Button"
+P: Phys=LNXPWRBN/button/input0
+S: Sysfs=/devices/platform/LNXPWRBN:00/input/input1
+U: Uniq=<redacted>
+H: Handlers=kbd event1 
+B: PROP=0
+B: EV=3
+B: KEY=8000 10000000000000 0
+
+I: Bus=0003 Vendor=0951 Product=16de Version=0111
+N: Name="Kingston HyperX Pulsefire Core"
+P: Phys=usb-0000:0f:00.3-3/input0
+S: Sysfs=/devices/pci0000:00/0000:00:08.1/0000:0f:00.3/usb3/3-3/3-3:1.0/0003:0951:16DE.0001/input/input2
+U: Uniq=<redacted>
+H: Handlers=event2 mouse0 
+B: PROP=0
+B: EV=17
+B: KEY=1f0000 0 0 0 0
+B: REL=1943
+B: MSC=10
+
+I: Bus=0003 Vendor=0951 Product=16de Version=0111
+N: Name="Kingston HyperX Pulsefire Core Keyboard"
+P: Phys=usb-0000:0f:00.3-3/input1
+S: Sysfs=/devices/pci0000:00/0000:00:08.1/0000:0f:00.3/usb3/3-3/3-3:1.1/0003:0951:16DE.0002/input/input3
+U: Uniq=<redacted>
+H: Handlers=sysrq kbd leds event3 
+B: PROP=0
+B: EV=12001f
+B: KEY=3f00733fff 0 0 483ffff17aff32d bfd4444600000000 1 130ff38b17d007 ffff7bfad941dfff ffbeffdfffefffff fffffffffffffffe
+B: REL=1040
+B: ABS=100000000
+B: MSC=10
+B: LED=1f
+
+I: Bus=0003 Vendor=0c45 Product=7603 Version=0111
+N: Name="USB Keyboard"
+P: Phys=usb-0000:02:00.0-1/input0
+S: Sysfs=/devices/pci0000:00/0000:00:01.2/0000:02:00.0/usb1/1-1/1-1:1.0/0003:0C45:7603.0004/input/input5
+U: Uniq=<redacted>
+H: Handlers=sysrq kbd leds event4 
+B: PROP=0
+B: EV=120013
+B: KEY=1000000000007 ff9f207ac14057ff febeffdfffefffff fffffffffffffffe
+B: MSC=10
+B: LED=1f
+
+I: Bus=0003 Vendor=0c45 Product=7603 Version=0111
+N: Name="USB Keyboard Consumer Control"
+P: Phys=usb-0000:02:00.0-1/input1
+S: Sysfs=/devices/pci0000:00/0000:00:01.2/0000:02:00.0/usb1/1-1/1-1:1.1/0003:0C45:7603.0005/input/input6
+U: Uniq=<redacted>
+H: Handlers=kbd event5 
+B: PROP=0
+B: EV=1f
+B: KEY=3f00733fff 0 0 483ffff17aff32d bfd4444600000000 1 130ff38b17d000 677bfad9415fed 19ed68000004400 10000002
+B: REL=1040
+B: ABS=100000000
+B: MSC=10
+
+I: Bus=0003 Vendor=0c45 Product=7603 Version=0111
+N: Name="USB Keyboard System Control"
+P: Phys=usb-0000:02:00.0-1/input1
+S: Sysfs=/devices/pci0000:00/0000:00:01.2/0000:02:00.0/usb1/1-1/1-1:1.1/0003:0C45:7603.0005/input/input7
+U: Uniq=<redacted>
+H: Handlers=kbd event6 
+B: PROP=0
+B: EV=13
+B: KEY=c000 10000000000000 0
+B: MSC=10
+
+I: Bus=0003 Vendor=0c45 Product=7603 Version=0111
+N: Name="USB Keyboard"
+P: Phys=usb-0000:02:00.0-1/input1
+S: Sysfs=/devices/pci0000:00/0000:00:01.2/0000:02:00.0/usb1/1-1/1-1:1.1/0003:0C45:7603.0005/input/input9
+U: Uniq=<redacted>
+H: Handlers=sysrq kbd event7 
+B: PROP=0
+B: EV=100013
+B: KEY=1000000000007 ff800000000007ff febeffdfffefffff fffffffffffffffe
+B: MSC=10
+
+I: Bus=0003 Vendor=0bda Product=4cb6 Version=0111
+N: Name="Generic LG Monitor Headset MIC Consumer Control"
+P: Phys=usb-0000:02:00.0-2.3/input0
+S: Sysfs=/devices/pci0000:00/0000:00:01.2/0000:02:00.0/usb1/1-2/1-2.3/1-2.3:1.0/0003:0BDA:4CB6.0007/input/input10
+U: Uniq=<redacted>
+H: Handlers=kbd event8 
+B: PROP=0
+B: EV=13
+B: KEY=40 0 0 0 0 0 0 3800000000 c000000000000 0
+B: MSC=10
+
+I: Bus=0003 Vendor=0bda Product=4cb6 Version=0111
+N: Name="Generic LG Monitor Headset MIC"
+P: Phys=usb-0000:02:00.0-2.3/input0
+S: Sysfs=/devices/pci0000:00/0000:00:01.2/0000:02:00.0/usb1/1-2/1-2.3/1-2.3:1.0/0003:0BDA:4CB6.0007/input/input11
+U: Uniq=<redacted>
+H: Handlers=event9 
+B: PROP=0
+B: EV=9
+B: ABS=10000000000
+
+I: Bus=0010 Vendor=001f Product=0001 Version=0100
+N: Name="PC Speaker"
+P: Phys=isa0061/input0
+S: Sysfs=/devices/platform/pcspkr/input/input12
+U: Uniq=<redacted>
+H: Handlers=kbd event10 
+B: PROP=0
+B: EV=40001
+B: SND=6
+
+I: Bus=0019 Vendor=0000 Product=0000 Version=0000
+N: Name="Eee PC WMI hotkeys"
+P: Phys=eeepc-wmi/input0
+S: Sysfs=/devices/platform/eeepc-wmi/input/input14
+U: Uniq=<redacted>
+H: Handlers=kbd event12 rfkill 
+B: PROP=0
+B: EV=100013
+B: KEY=7e40000 0 800000000000 0 0 1400b00100000 300180001100800 e000000000000 2
+B: MSC=10
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HDA ATI HDMI HDMI/DP,pcm=3"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:03.1/0000:0b:00.0/0000:0c:00.0/0000:0d:00.1/sound/card0/input15
+U: Uniq=<redacted>
+H: Handlers=event13 
+B: PROP=0
+B: EV=21
+B: SW=140
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HDA ATI HDMI HDMI/DP,pcm=7"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:03.1/0000:0b:00.0/0000:0c:00.0/0000:0d:00.1/sound/card0/input16
+U: Uniq=<redacted>
+H: Handlers=event14 
+B: PROP=0
+B: EV=21
+B: SW=140
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HDA ATI HDMI HDMI/DP,pcm=8"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:03.1/0000:0b:00.0/0000:0c:00.0/0000:0d:00.1/sound/card0/input17
+U: Uniq=<redacted>
+H: Handlers=event15 
+B: PROP=0
+B: EV=21
+B: SW=140
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HDA ATI HDMI HDMI/DP,pcm=9"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:03.1/0000:0b:00.0/0000:0c:00.0/0000:0d:00.1/sound/card0/input18
+U: Uniq=<redacted>
+H: Handlers=event16 
+B: PROP=0
+B: EV=21
+B: SW=140
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HD-Audio Generic Rear Mic"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:08.1/0000:0f:00.4/sound/card1/input19
+U: Uniq=<redacted>
+H: Handlers=event17 
+B: PROP=0
+B: EV=21
+B: SW=10
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HD-Audio Generic Front Mic"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:08.1/0000:0f:00.4/sound/card1/input20
+U: Uniq=<redacted>
+H: Handlers=event18 
+B: PROP=0
+B: EV=21
+B: SW=10
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HD-Audio Generic Line"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:08.1/0000:0f:00.4/sound/card1/input21
+U: Uniq=<redacted>
+H: Handlers=event19 
+B: PROP=0
+B: EV=21
+B: SW=2000
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HD-Audio Generic Line Out"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:08.1/0000:0f:00.4/sound/card1/input22
+U: Uniq=<redacted>
+H: Handlers=event20 
+B: PROP=0
+B: EV=21
+B: SW=40
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="HD-Audio Generic Front Headphone"
+P: Phys=ALSA
+S: Sysfs=/devices/pci0000:00/0000:00:08.1/0000:0f:00.4/sound/card1/input23
+U: Uniq=<redacted>
+H: Handlers=event21 
+B: PROP=0
+B: EV=21
+B: SW=4
+
+I: Bus=0003 Vendor=054c Product=05c4 Version=8111
+N: Name="GameSir G7 Pro (Virtual DualShock 4)"
+P: Phys=
+S: Sysfs=/devices/virtual/misc/uhid/0003:054C:05C4.0031/input/input227
+U: Uniq=<redacted>
+H: Handlers=event11 js0 
+B: PROP=0
+B: EV=20000b
+B: KEY=7fdb000000000000 0 0 0 0
+B: ABS=3003f
+B: FF=107030000 0
+
+I: Bus=0003 Vendor=054c Product=05c4 Version=8111
+N: Name="GameSir G7 Pro (Virtual DualShock 4) Motion Sensors"
+P: Phys=
+S: Sysfs=/devices/virtual/misc/uhid/0003:054C:05C4.0031/input/input228
+U: Uniq=<redacted>
+H: Handlers=event22 
+B: PROP=40
+B: EV=19
+B: ABS=3f
+B: MSC=20
+
+I: Bus=0003 Vendor=054c Product=05c4 Version=8111
+N: Name="GameSir G7 Pro (Virtual DualShock 4) Touchpad"
+P: Phys=
+S: Sysfs=/devices/virtual/misc/uhid/0003:054C:05C4.0031/input/input229
+U: Uniq=<redacted>
+H: Handlers=event23 mouse1 
+B: PROP=5
+B: EV=b
+B: KEY=2420 10000 0 0 0 0
+B: ABS=260800000000003
+
+I: Bus=0003 Vendor=045e Product=028e Version=0114
+N: Name="Microsoft X-Box 360 pad"
+P: Phys=usb-dummy_hcd.0-1/input0
+S: Sysfs=/devices/platform/dummy_hcd.0/usb5/5-1/5-1:1.0/input/input231
+U: Uniq=<redacted>
+H: Handlers=event24 js1 
+B: PROP=0
+B: EV=20000b
+B: KEY=7cdb000000000000 0 0 0 0
+B: ABS=3003f
+B: FF=107030000 0
+
++ capture /tmp/fake-pad-regression.log.patched
++ out=/tmp/fake-pad-regression.log.patched
++ :
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event0 ']'
+++ basename /dev/input/event0
++ base=/sys/class/input/event0/device
+++ cat /sys/class/input/event0/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event1 ']'
+++ basename /dev/input/event1
++ base=/sys/class/input/event1/device
+++ cat /sys/class/input/event1/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event10 ']'
+++ basename /dev/input/event10
++ base=/sys/class/input/event10/device
+++ cat /sys/class/input/event10/device/id/vendor
++ '[' 001f = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event11 ']'
+++ basename /dev/input/event11
++ base=/sys/class/input/event11/device
+++ cat /sys/class/input/event11/device/id/vendor
++ '[' 054c = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event12 ']'
+++ basename /dev/input/event12
++ base=/sys/class/input/event12/device
+++ cat /sys/class/input/event12/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event13 ']'
+++ basename /dev/input/event13
++ base=/sys/class/input/event13/device
+++ cat /sys/class/input/event13/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event14 ']'
+++ basename /dev/input/event14
++ base=/sys/class/input/event14/device
+++ cat /sys/class/input/event14/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event15 ']'
+++ basename /dev/input/event15
++ base=/sys/class/input/event15/device
+++ cat /sys/class/input/event15/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event16 ']'
+++ basename /dev/input/event16
++ base=/sys/class/input/event16/device
+++ cat /sys/class/input/event16/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event17 ']'
+++ basename /dev/input/event17
++ base=/sys/class/input/event17/device
+++ cat /sys/class/input/event17/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event18 ']'
+++ basename /dev/input/event18
++ base=/sys/class/input/event18/device
+++ cat /sys/class/input/event18/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event19 ']'
+++ basename /dev/input/event19
++ base=/sys/class/input/event19/device
+++ cat /sys/class/input/event19/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event2 ']'
+++ basename /dev/input/event2
++ base=/sys/class/input/event2/device
+++ cat /sys/class/input/event2/device/id/vendor
++ '[' 0951 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event20 ']'
+++ basename /dev/input/event20
++ base=/sys/class/input/event20/device
+++ cat /sys/class/input/event20/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event21 ']'
+++ basename /dev/input/event21
++ base=/sys/class/input/event21/device
+++ cat /sys/class/input/event21/device/id/vendor
++ '[' 0000 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event22 ']'
+++ basename /dev/input/event22
++ base=/sys/class/input/event22/device
+++ cat /sys/class/input/event22/device/id/vendor
++ '[' 054c = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event23 ']'
+++ basename /dev/input/event23
++ base=/sys/class/input/event23/device
+++ cat /sys/class/input/event23/device/id/vendor
++ '[' 054c = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event24 ']'
+++ basename /dev/input/event24
++ base=/sys/class/input/event24/device
+++ cat /sys/class/input/event24/device/id/vendor
++ '[' 045e = 045e ']'
+++ cat /sys/class/input/event24/device/id/product
++ '[' 028e = 028e ']'
+++ cat /sys/class/input/event24/device/name
++ echo '-- Microsoft X-Box 360 pad'
++ /tmp/evdev_caps_report /dev/input/event24
+ctrl c1 01 value=0100 index=0000 len=20
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event3 ']'
+++ basename /dev/input/event3
++ base=/sys/class/input/event3/device
+++ cat /sys/class/input/event3/device/id/vendor
++ '[' 0951 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event4 ']'
+++ basename /dev/input/event4
++ base=/sys/class/input/event4/device
+++ cat /sys/class/input/event4/device/id/vendor
++ '[' 0c45 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event5 ']'
+++ basename /dev/input/event5
++ base=/sys/class/input/event5/device
+++ cat /sys/class/input/event5/device/id/vendor
++ '[' 0c45 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event6 ']'
+++ basename /dev/input/event6
++ base=/sys/class/input/event6/device
+++ cat /sys/class/input/event6/device/id/vendor
++ '[' 0c45 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event7 ']'
+++ basename /dev/input/event7
++ base=/sys/class/input/event7/device
+++ cat /sys/class/input/event7/device/id/vendor
++ '[' 0c45 = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event8 ']'
+++ basename /dev/input/event8
++ base=/sys/class/input/event8/device
+++ cat /sys/class/input/event8/device/id/vendor
++ '[' 0bda = 045e ']'
++ continue
++ for ev in /dev/input/event*
++ '[' -e /dev/input/event9 ']'
+++ basename /dev/input/event9
++ base=/sys/class/input/event9/device
+++ cat /sys/class/input/event9/device/id/vendor
++ '[' 0bda = 045e ']'
++ continue
+++ grep -c '^-- ' /tmp/fake-pad-regression.log.patched
++ n=1
++ '[' 1 -eq 0 ']'
++ echo 'captured 1 input node(s) for /tmp/fake-pad-regression.log.patched'
+captured 1 input node(s) for /tmp/fake-pad-regression.log.patched
++ kill 136471
++ wait 136471
++ FAKE_PID=
++ sleep 1
++ rmmod xpad
++ modprobe xpad
++ echo '=== comparison ==='
+=== comparison ===
++ diff -u /tmp/fake-pad-regression.log.stock /tmp/fake-pad-regression.log.patched
++ echo 'RESULT: IDENTICAL — patched xpad presents the same capabilities'
+RESULT: IDENTICAL — patched xpad presents the same capabilities
++ cleanup
++ kill 0

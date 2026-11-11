@@ -25,6 +25,7 @@ Pinned to commit `33da321bbc521b4b085712a38e54d06121bb1b00`.
 | arm64 build | `ARCH=arm64 LLVM=1 modules_prepare` + module | pass — clean `aarch64` object |
 | Runtime PM | `power/control=auto` | not implemented — `runtime_status` stays `active` |
 | 6.12 LTS | patch application | not applicable — baseline API drift; backport out of scope |
+| Non-G7 regression (synthetic) | dummy_hcd + raw_gadget emulating `045e:028e`, stock vs patched | pass — `RESULT: IDENTICAL` |
 | KCSAN strict + lockdep (VM) | `scripts/kasan-vm/`, `CONFIG_KCSAN_STRICT=y` | pass — zero reports with IMU and FF active |
 
 ## xpad extension (upstream direction)
