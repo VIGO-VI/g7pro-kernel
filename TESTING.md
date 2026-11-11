@@ -13,7 +13,8 @@ Pinned to commit `33da321bbc521b4b085712a38e54d06121bb1b00`.
 | Parser unit tests | `cc -fsanitize=address,undefined -I. tests/parser_test.c` | pass |
 | Parser fuzz loop | 200k random buffers in `parser_test.c` | pass under ASan/UBSan |
 | smatch | not packaged on CachyOS; scan-build could not be driven with the kernel LLVM flags | not run; sparse/checkpatch/KFENCE used |
-| KASAN/KCSAN/lockdep | host kernel lacks `CONFIG_KASAN`, `CONFIG_KCSAN`, `CONFIG_PROVE_LOCKING`; `CONFIG_KFENCE=y` | blocked by kernel config; KFENCE active |
+| KASAN (VM) | `scripts/kasan-vm/` — mainline 7.3.4 + `CONFIG_KASAN`, real pad via QEMU `usb-host` | pass — clean probe/read/FF/teardown; `GAMEPAD-FOUND` |
+| KCSAN/lockdep | host lacks `CONFIG_KCSAN`, `CONFIG_PROVE_LOCKING` | not run yet |
 
 ## xpad extension (upstream direction)
 

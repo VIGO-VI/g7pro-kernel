@@ -169,9 +169,10 @@ driver is kept in `prototype/` as the reference and fallback.  Both were
 tested on hardware.  evdev capabilities match xpad (same axes, key codes and
 FF bits; only the paddles and device name differ).
 
-Still missing before an upstream submission: KASAN/KCSAN/lockdep (host kernel
-lacks those configs; KFENCE is enabled), suspend/resume field testing, and
-regression testing on another xpad controller.
+Still missing before an upstream submission: KCSAN/lockdep, suspend/resume
+field testing, and regression testing on another xpad controller.  KASAN is
+covered by booting a mainline kernel in QEMU with the real pad passed through;
+see `scripts/kasan-vm/`.
 
 See `HARDWARE.md` for the official capability check, `REFERENCE.md` for the
 drivers used as references, `TESTING.md` for current evidence, and
