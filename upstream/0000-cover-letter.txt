@@ -25,7 +25,9 @@ The patch:
   ABS_RX/RY/RZ (gyro), MSC_TIMESTAMP, resolution 8192/g and
   16/(deg/s), and the same uniq as the gamepad so SDL3 pairs them,
 - exposes battery capacity/status through power_supply,
-- leaves the existing xpad gamepad reports and FF_RUMBLE path in place.
+- leaves the existing xpad gamepad reports untouched and routes only this
+  device's FF through a bounded, refreshed vendor packet, so the motors stop
+  on their own if the host disappears.
 
 Tested on a wired 3537:109b (bcdDevice 0x0240), SDL3 3.4.18:
 
@@ -38,7 +40,11 @@ Tested on a wired 3537:109b (bcdDevice 0x0240), SDL3 3.4.18:
 - power_supply `g7pro-1-16-battery`: capacity 100, status Full,
 - `rumble_test: OK`, grip vibration observed,
 - hotplug, physical replug (including the 1022 native/GIP recovery via
-  Share+Menu), module reload and xpad restore.
+  Share+Menu), module reload and xpad restore,
+- KASAN + lockdep and KCSAN (strict) in QEMU with the real pad passed
+  through: no report in any driver path,
+- suspend/resume to S3 on hardware: devices, IMU, rumble and battery all
+  survive; the controller re-enumerates, so probe repeats the warm-up.
 
 Known issues / review requests:
 
@@ -52,9 +58,14 @@ Known issues / review requests:
 - xpad is currently orphaned.  I am not asking to become a maintainer;
   I am happy to iterate on review and keep the proof/test harness
   public.
-- KASAN/KCSAN/lockdep were not available on the test host (KFENCE is
-  enabled).  sparse, W=1, checkpatch (apart from the intentional
-  missing Signed-off-by) and the parser tests are clean.
+- sparse, W=1, checkpatch (0 errors/warnings/checks) and the parser tests
+  are clean; the patch applies and builds against 7.3.4.
+- Only 3537:109b is claimed.  The 2.4 GHz dongle (109c) and the 100a
+  identity are untested; 1022 is plain HID with no vendor interface.
+- A short pulse is felt when a driver binds after re-enumeration.  It is
+  not produced by any packet the driver sends (control builds with no
+  heartbeat and no serial read still pulse; no pulse without a driver) and
+  is recorded as an unexplained, cosmetic residual.
 
 AI-assistance disclosure, per Documentation/process/coding-assistants.rst
 and generated-content.rst:
