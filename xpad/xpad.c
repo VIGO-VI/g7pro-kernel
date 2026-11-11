@@ -806,8 +806,13 @@ struct g7pro_sensor {
 	struct input_dev *motion;
 	struct power_supply *battery;
 	struct delayed_work hb_work;
+	struct delayed_work ff_work;
 	u8 *hb_buf;
+	u8 *ff_buf;
 	u8 seq;
+	u8 ff_strong;
+	u8 ff_weak;
+	bool ff_active;
 	int battery_percent;
 	bool charging;
 	char *uniq;
@@ -899,6 +904,75 @@ static int g7pro_send_heartbeat(struct usb_xpad *xpad)
 	return 0;
 }
 
+/*
+ * The device runs a rumble packet for a bounded time, so a long effect is
+ * kept alive by refreshing it.  That also means the motors stop on their own
+ * about half a second after the host goes away, which the "run until a stop
+ * packet arrives" shape does not.
+ */
+static void g7pro_send_rumble(struct usb_xpad *xpad, u8 strong, u8 weak,
+			      bool active)
+{
+	u8 *pkt = xpad->g7pro->ff_buf;
+	int actual = 0;
+	int ret;
+
+	if (!pkt)
+		return;
+	memset(pkt, 0, G7PRO_REPORT_LEN);
+
+	pkt[0] = 0x09;
+	pkt[2] = ++xpad->g7pro->seq;
+	pkt[3] = 0x09;
+	pkt[5] = 0x0f;
+	pkt[8] = strong;
+	pkt[9] = weak;
+	pkt[10] = active ? 0xff : 0x00;	/* on period */
+	pkt[11] = 0x00;			/* off period */
+	pkt[12] = 0x00;			/* repeat count */
+
+	ret = usb_interrupt_msg(xpad->udev, usb_sndintpipe(xpad->udev, 0x02),
+				pkt, G7PRO_REPORT_LEN, &actual, 1000);
+	dev_info_ratelimited(&xpad->intf->dev,
+			     "g7pro rumble s=%u w=%u on=%d ret=%d len=%d\n",
+			     strong, weak, active, ret, actual);
+}
+
+static void g7pro_ff_work(struct work_struct *work)
+{
+	struct g7pro_sensor *g7 = container_of(to_delayed_work(work),
+					       struct g7pro_sensor, ff_work);
+	struct usb_xpad *xpad = g7->xpad;
+
+	if (!READ_ONCE(g7->started))
+		return;
+	g7pro_send_rumble(xpad, READ_ONCE(g7->ff_strong),
+			  READ_ONCE(g7->ff_weak), READ_ONCE(g7->ff_active));
+	if (READ_ONCE(g7->ff_active))
+		schedule_delayed_work(&g7->ff_work, msecs_to_jiffies(200));
+}
+
+static int g7pro_play_effect(struct usb_xpad *xpad, struct ff_effect *effect)
+{
+	struct g7pro_sensor *g7 = xpad->g7pro;
+	u8 strong, weak;
+
+	if (effect->type != FF_RUMBLE)
+		return 0;
+
+	strong = ((effect->u.rumble.strong_magnitude >> 8) * 100 + 127) / 255;
+	weak = ((effect->u.rumble.weak_magnitude >> 8) * 100 + 127) / 255;
+
+	WRITE_ONCE(g7->ff_strong, strong);
+	WRITE_ONCE(g7->ff_weak, weak);
+	WRITE_ONCE(g7->ff_active, strong || weak);
+
+	/* Always go through the workqueue: this context holds event_lock and
+	 * must not sleep. */
+	mod_delayed_work(system_wq, &g7->ff_work, 0);
+	return 0;
+}
+
 static void g7pro_hb_work(struct work_struct *work)
 {
 	struct g7pro_sensor *g7 = container_of(to_delayed_work(work),
@@ -964,6 +1038,9 @@ static struct g7pro_sensor *g7pro_sensor_alloc(struct usb_xpad *xpad)
 	g7->hb_buf = kmalloc(G7PRO_REPORT_LEN, GFP_KERNEL);
 	if (!g7->hb_buf)
 		goto err;
+	g7->ff_buf = kmalloc(G7PRO_REPORT_LEN, GFP_KERNEL);
+	if (!g7->ff_buf)
+		goto err;
 
 	ret = usb_string(xpad->udev, xpad->udev->descriptor.iSerialNumber,
 			 serial, sizeof(serial));
@@ -1002,6 +1079,7 @@ static struct g7pro_sensor *g7pro_sensor_alloc(struct usb_xpad *xpad)
 	input_abs_set_res(g7->motion, ABS_RZ, 16);
 
 	INIT_DELAYED_WORK(&g7->hb_work, g7pro_hb_work);
+	INIT_DELAYED_WORK(&g7->ff_work, g7pro_ff_work);
 	return g7;
 
 err:
@@ -1065,8 +1143,11 @@ static void g7pro_sensor_stop(struct usb_xpad *xpad)
 	if (!g7)
 		return;
 	WRITE_ONCE(g7->started, false);
-	xpad->g7pro = NULL;
+	WRITE_ONCE(g7->ff_active, false);
+	cancel_delayed_work_sync(&g7->ff_work);
 	cancel_delayed_work_sync(&g7->hb_work);
+	g7pro_send_rumble(xpad, 0, 0, false);
+	xpad->g7pro = NULL;
 	if (g7->battery)
 		power_supply_unregister(g7->battery);
 	if (g7->motion_registered)
@@ -1074,6 +1155,7 @@ static void g7pro_sensor_stop(struct usb_xpad *xpad)
 	else if (g7->motion)
 		input_free_device(g7->motion);
 	kfree(g7->hb_buf);
+	kfree(g7->ff_buf);
 	kfree(g7->uniq);
 	kfree(g7);
 }
@@ -1839,6 +1921,9 @@ static int xpad_play_effect(struct input_dev *dev, void *data, struct ff_effect 
 	if (effect->type != FF_RUMBLE)
 		return 0;
 
+	if (xpad->g7pro)
+		return g7pro_play_effect(xpad, effect);
+
 	strong = effect->u.rumble.strong_magnitude;
 	weak = effect->u.rumble.weak_magnitude;
 
@@ -2579,7 +2664,10 @@ static void g7pro_suspend(struct usb_xpad *xpad)
 	if (!g7)
 		return;
 	WRITE_ONCE(g7->started, false);
+	WRITE_ONCE(g7->ff_active, false);
+	cancel_delayed_work_sync(&g7->ff_work);
 	cancel_delayed_work_sync(&g7->hb_work);
+	g7pro_send_rumble(xpad, 0, 0, false);
 }
 
 static void g7pro_resume(struct usb_xpad *xpad)

@@ -82,10 +82,10 @@ for ev in /dev/input/event*; do
 	[ -e "$ev" ] || continue
 	base="/sys/class/input/$(basename "$ev")/device"
 	[ "$(cat "$base/id/vendor" 2>/dev/null)" = 3537 ] || continue
-	# The gamepad has key capabilities; the motion node does not.
-	[ -n "$(cat "$base/capabilities/key" 2>/dev/null)" ] || continue
+	# Only the gamepad advertises force feedback; the motion node does not.
+	case "$(cat "$base/name" 2>/dev/null)" in *"Motion Sensors"*) continue ;; esac
 	/tests/evdev_caps "$ev"
-	GAME_EV=$ev
+	[ -n "${GAME_EV:-}" ] || GAME_EV=$ev
 	/tests/rumble_test "$ev" 5000 || echo "rumble_test failed"
 	FOUND=1
 done
@@ -115,7 +115,7 @@ if [ -n "$FOUND" ]; then
 		[ -e "$ev" ] || continue
 		base="/sys/class/input/$(basename "$ev")/device"
 		[ "$(cat "$base/id/vendor" 2>/dev/null)" = 3537 ] || continue
-		[ -n "$(cat "$base/capabilities/key" 2>/dev/null)" ] || continue
+		case "$(cat "$base/name" 2>/dev/null)" in *"Motion Sensors"*) continue ;; esac
 		echo "REBIND-GAMEPAD-OK"
 	done
 fi
