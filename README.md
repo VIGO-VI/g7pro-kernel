@@ -144,17 +144,18 @@ The series changes `xpad`, which drives every Xbox-compatible pad on Linux.  I
 only have the GameSir G7 Pro, so the missing evidence is a run on **any other
 xpad controller**.
 
-If you own one, please compare stock `xpad` with the patched module:
+If you own one, there is a one-command report:
 
 ```sh
-./scripts/xpad-test.sh          # patched module, log in /tmp/xpad-g7pro-test.log
-sudo modprobe -r xpad && sudo modprobe xpad
-./tests/evdev_caps /dev/input/eventN   # build it first, see Tests
+git clone https://github.com/VIGO-VI/g7pro-kernel
+cd g7pro-kernel
+sudo ./scripts/other-pad-report.sh
 ```
 
-What matters is that the other pad still enumerates with the same axes, key
-codes and FF bits, and that the log shows no new xpad errors.  Report results
-in the repository issues; no email to maintainers is needed.
+It builds the patched module, records the pad before and after, restores the
+stock driver, and writes a report with serials/MACs/IPs redacted.  Attach that
+file to [issue #1](https://github.com/VIGO-VI/g7pro-kernel/issues/1).  Full
+instructions, requirements and troubleshooting: `TESTING-OTHER-PADS.md`.
 
 ## Status
 
