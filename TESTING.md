@@ -17,6 +17,12 @@ Pinned to commit `33da321bbc521b4b085712a38e54d06121bb1b00`.
 | KASAN + lockdep (VM, xpad) | `scripts/kasan-vm/` — mainline 7.3.4 + `CONFIG_KASAN` + `CONFIG_PROVE_LOCKING`, real pad via QEMU `usb-host` | pass — clean probe/read/5 s FF/teardown; one pre-module boot report, see evidence log |
 | Teardown under load | unbind the USB device while an effect is playing, then rebind | pass — stop sent on unbind, `REBIND-GAMEPAD-OK`; stock xpad control leaves the motors running |
 | Suspend/resume (hardware) | real S3 via `rtcwake`, patched `xpad.ko` | pass — devices, IMU, rumble and battery after resume; device re-enumerates |
+| Concurrent FF clients | three processes upload/play effects, then teardown | pass — no failure, no KCSAN in driver code |
+| kmemleak | KASAN + kmemleak, 3 FF/IMU rounds, unload, scans | pass — `KMEMLEAK-CLEAR` |
+| Fault injection | KASAN + failslab, 30 insmod/rmmod at 2 % | pass — `ok=3 fail=27`, final load OK, no KASAN |
+| arm64 build | `ARCH=arm64 LLVM=1 modules_prepare` + module | pass — clean `aarch64` object |
+| Runtime PM | `power/control=auto` | not implemented — `runtime_status` stays `active` |
+| 6.12 LTS | patch application | not applicable — baseline API drift; backport out of scope |
 | KCSAN strict + lockdep (VM) | `scripts/kasan-vm/`, `CONFIG_KCSAN_STRICT=y` | pass — zero reports with IMU and FF active |
 
 ## xpad extension (upstream direction)

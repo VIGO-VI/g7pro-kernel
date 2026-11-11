@@ -113,6 +113,30 @@ if [ -n "${MOTION_EV:-}" ] && [ -n "${GAME_EV:-}" ]; then
 	wait "$HOLD_PID" 2>/dev/null || true
 fi
 
+echo "=== runtime PM ==="
+for d in /sys/bus/usb/devices/*/idVendor; do
+	[ -e "$d" ] || continue
+	[ "$(cat "$d")" = 3537 ] || continue
+	P=$(dirname "$d")/power
+	echo "control=$(cat "$P/control") status=$(cat "$P/runtime_status")"
+	echo auto > "$P/control"
+	sleep 2
+	echo "after-auto control=$(cat "$P/control") status=$(cat "$P/runtime_status")"
+	echo on > "$P/control"
+done
+
+echo "=== concurrent FF clients ==="
+if [ -n "${GAME_EV:-}" ]; then
+	/tests/rumble_test "$GAME_EV" 1500 & P1=$!
+	/tests/rumble_test "$GAME_EV" 1500 & P2=$!
+	sleep 1
+	/tests/rumble_test "$GAME_EV" 800 & P3=$!
+	wait $P1 2>/dev/null || echo "client1 failed"
+	wait $P2 2>/dev/null || echo "client2 failed"
+	wait $P3 2>/dev/null || echo "client3 failed"
+	echo "CONCURRENT-FF-DONE"
+fi
+
 echo "=== teardown under load ==="
 if [ -n "$FOUND" ]; then
 	/tests/rumble_test "$GAME_EV" 3000 &
@@ -148,6 +172,96 @@ echo "=== init: done ==="
 sync
 poweroff -f
 EOF
+
+if [ "${LEAK:-0}" = 1 ]; then
+	cat > "$WORK/init" <<'EOF'
+#!/bin/sh
+export PATH=/bin
+mount -t proc proc /proc
+mount -t sysfs sys /sys
+mount -t devtmpfs dev /dev
+mkdir -p /sys/kernel/debug
+mount -t debugfs debugfs /sys/kernel/debug 2>/dev/null
+insmod /lib/modules/__MODULE__.ko || echo "insmod failed"
+sleep 2
+for round in 1 2 3; do
+	echo "leak round $round"
+	for ev in /dev/input/event*; do
+		[ -e "$ev" ] || continue
+		case "$(cat "/sys/class/input/$(basename "$ev")/device/name" 2>/dev/null)" in
+		"GameSir G7 Pro") GAME_EV=$ev ;;
+		*"Motion Sensors"*) MOTION_EV=$ev ;;
+		esac
+	done
+	[ -n "$GAME_EV" ] && /tests/rumble_test "$GAME_EV" 1200 &
+	[ -n "$MOTION_EV" ] && /tests/accel_watch "$MOTION_EV" 800
+	wait 2>/dev/null || true
+done
+rmmod xpad
+sleep 2
+echo scan > /sys/kernel/debug/kmemleak
+sleep 3
+echo scan > /sys/kernel/debug/kmemleak
+sleep 2
+if [ -s /sys/kernel/debug/kmemleak ]; then
+	echo "KMEMLEAK-REPORT"
+	cat /sys/kernel/debug/kmemleak
+else
+	echo "KMEMLEAK-CLEAR"
+fi
+sync
+poweroff -f
+EOF
+fi
+
+if [ "${FAULT:-0}" = 1 ]; then
+	cat > "$WORK/init" <<'EOF'
+#!/bin/sh
+export PATH=/bin
+mount -t proc proc /proc
+mount -t sysfs sys /sys
+mount -t devtmpfs dev /dev
+mkdir -p /sys/kernel/debug
+mount -t debugfs debugfs /sys/kernel/debug 2>/dev/null
+F=/sys/kernel/debug/failslab
+if [ -d "$F" ]; then
+	echo 0 > "$F/ignore-gfp-wait"
+	echo 2 > "$F/probability"
+	echo -1 > "$F/times"
+	echo 1 > "$F/interval"
+	echo 0 > "$F/verbose"
+	echo 1 > "$F/task-filter"
+	echo "failslab settings: p=$(cat "$F/probability") t=$(cat "$F/times") i=$(cat "$F/interval") gfpwait=$(cat "$F/ignore-gfp-wait")"
+else
+	echo "failslab unavailable"
+fi
+ok=0
+fail=0
+i=0
+while [ $i -lt 30 ]; do
+	i=$((i + 1))
+	# Mark only the insmod child, so the shell's own allocations are safe.
+	if sh -c 'echo 1 > /proc/self/make-it-fail; exec insmod /lib/modules/__MODULE__.ko' 2>/dev/null; then
+		ok=$((ok + 1))
+		sleep 0.3
+		rmmod xpad 2>/dev/null
+	else
+		fail=$((fail + 1))
+	fi
+done
+echo "FAULT-DONE ok=$ok fail=$fail"
+[ -d "$F" ] && echo 0 > "$F/probability"
+insmod /lib/modules/__MODULE__.ko || echo "final insmod failed"
+sleep 2
+for ev in /dev/input/event*; do
+	[ -e "$ev" ] || continue
+	name=$(cat "/sys/class/input/$(basename "$ev")/device/name" 2>/dev/null)
+	[ "$name" = "GameSir G7 Pro" ] && echo "FINAL-GAMEPAD-OK"
+done
+sync
+poweroff -f
+EOF
+fi
 
 if [ "${REBIND_ONLY:-0}" = 1 ]; then
 	cat > "$WORK/init" <<'EOF'

@@ -983,6 +983,10 @@ static void g7pro_hb_work(struct work_struct *work)
 	if (!READ_ONCE(g7->started))
 		return;
 	ret = g7pro_send_heartbeat(xpad);
+	/* The device is gone; disconnect tears the rest down.  Do not reschedule
+	 * and do not log a failure that is expected during removal. */
+	if (ret == -ENODEV || ret == -ENOENT)
+		return;
 	if (ret && ret != -EPIPE && ret != -ESHUTDOWN)
 		dev_warn_ratelimited(&xpad->intf->dev,
 				     "g7pro heartbeat failed: %d\n", ret);
